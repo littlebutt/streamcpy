@@ -38,11 +38,5 @@
     <None Include="python\__init__.py">
       <Filter>Python Files</Filter>
     </None>
-    <None Include="..\..\..\..\Desktop\bot\streampy\.gitignore">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\..\Desktop\bot\streampy\LICENSE">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

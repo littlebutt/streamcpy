@@ -193,8 +193,6 @@
     <ClCompile Include="streampy.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Desktop\bot\streampy\.gitignore" />
-    <None Include="..\..\..\..\Desktop\bot\streampy\LICENSE" />
     <None Include="python\exceptions.py" />
     <None Include="python\optypes.py" />
     <None Include="python\pipeline.py" />
