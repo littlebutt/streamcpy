@@ -7,8 +7,9 @@ class OpType(Enum):
     skip = 0,
     map = 1,
     filter = 2,
-    for_each = 3,
-    collect = 4
+    distinct= 3
+    for_each = 4,
+    collect = 5
 
     @staticmethod
     def name_of(op_type_name: str) -> "OpType":

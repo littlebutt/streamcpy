@@ -35,6 +35,9 @@ class Pipeline:
             else:
                 if OpType.collect == ptr.op_type:
                     return data
+                if OpType.distinct == ptr.op_type:
+                    _memo = set()
+                    data = [x for x in data if x not in _memo and not _memo.add(x)]
                 else:
                     data = ptr.op_method(data)
             ptr = ptr.next
