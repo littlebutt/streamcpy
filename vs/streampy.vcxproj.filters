@@ -23,28 +23,28 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="python\stream.py">
+    <None Include="..\python\stream.py">
       <Filter>Python Files</Filter>
     </None>
-    <None Include="python\exceptions.py">
+    <None Include="..\python\exceptions.py">
       <Filter>Python Files</Filter>
     </None>
-    <None Include="python\pipeline.py">
+    <None Include="..\python\pipeline.py">
       <Filter>Python Files</Filter>
     </None>
-    <None Include="python\optypes.py">
+    <None Include="..\python\optypes.py">
       <Filter>Python Files</Filter>
     </None>
-    <None Include="python\__init__.py">
+    <None Include="..\python\__init__.py">
       <Filter>Python Files</Filter>
     </None>
-    <None Include=".gitignore">
+    <None Include="..\.gitignore">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="LICENSE">
+    <None Include="..\LICENSE">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="python\main.py">
+    <None Include="..\python\main.py">
       <Filter>Python Files</Filter>
     </None>
   </ItemGroup>
