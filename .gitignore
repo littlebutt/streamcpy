@@ -54,3 +54,14 @@ dkms.conf
 # VS
 
 *.user
+/x64
+/python/main.py
+
+
+# python
+
+/python/__pycache__
+
+# idea
+
+/.idea

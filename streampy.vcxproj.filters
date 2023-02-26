@@ -38,5 +38,14 @@
     <None Include="python\__init__.py">
       <Filter>Python Files</Filter>
     </None>
+    <None Include=".gitignore">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="LICENSE">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="python\main.py">
+      <Filter>Python Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

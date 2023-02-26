@@ -1,6 +1,6 @@
 from typing import Any, Callable, Iterable
+from functools import partial
 
-from exceptions import StreamInvalidOperationError
 from optypes import OpType
 from pipeline import Pipeline
 
@@ -8,15 +8,20 @@ from pipeline import Pipeline
 class Stream:
 
     spliterator: Iterable[Any]
-    head: "Pipeline" = Pipeline()
+    head: "Pipeline" = Pipeline(OpType.skip, None)
 
-    def __init__(self) -> None:
-        raise NotImplementedError()
+    @staticmethod
+    def of(args: Iterable[Any]) -> "Stream":
+        s = Stream()
+        s.spliterator = args
+        return s
 
-    def of(self, args: Iterable[Any]) -> "Stream":
-        if self.spliterator:
-            raise StreamInvalidOperationError("The current Stream is inited")
-        self.spliterator = args
+    def call_method(self, op_name: str, *args) -> Any:
+        op_type = OpType.name_of(op_name)
+        Pipeline.append(self.head, op_type, args[0])
+        if OpType.is_terminal(op_type):
+            return Pipeline.execute(self.head, self.spliterator)
+        return self
     
-    def map(self, op: Callable[[Any], Any]) -> "Stream": ## TODO: partial func optimization
-        Pipeline.append(self.head, OpType.MAP, op)
+    def __getattr__(self, op_name: str) -> Any:
+        return partial(self.call_method, op_name)
