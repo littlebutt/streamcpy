@@ -28,7 +28,13 @@ class Pipeline:
                 ptr = ptr.next
                 continue
             if OpType.execute_with_element(ptr.op_type):
-                data = [ptr.op_method(x) for x in data]
+                if OpType.filter == ptr.op_type:
+                    data = [x for x in filter(ptr.op_method, data)]
+                else:
+                    data = [ptr.op_method(x) for x in data]
             else:
-                data = ptr.op_method(data)
+                if OpType.collect == ptr.op_type:
+                    return data
+                else:
+                    data = ptr.op_method(data)
             ptr = ptr.next

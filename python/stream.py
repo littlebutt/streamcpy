@@ -18,7 +18,7 @@ class Stream:
 
     def call_method(self, op_name: str, *args) -> Any:
         op_type = OpType.name_of(op_name)
-        Pipeline.append(self.head, op_type, args[0])
+        Pipeline.append(self.head, op_type, args[0] if len(args) > 0 else None)
         if OpType.is_terminal(op_type):
             return Pipeline.execute(self.head, self.spliterator)
         return self
