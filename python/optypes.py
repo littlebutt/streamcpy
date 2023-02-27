@@ -7,9 +7,10 @@ class OpType(Enum):
     skip = 0,
     map = 1,
     filter = 2,
-    distinct= 3
-    for_each = 4,
-    collect = 5
+    distinct = 3,
+    limit = 4,
+    for_each = 5,
+    collect = 6
 
     @staticmethod
     def name_of(op_type_name: str) -> "OpType":

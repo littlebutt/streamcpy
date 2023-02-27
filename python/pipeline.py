@@ -1,11 +1,11 @@
-from typing import Callable, Iterable, Optional, Any
+from typing import Callable, Iterable, Optional, Any, Union
 
 from optypes import OpType
 
 
 class Pipeline:
     op_type: OpType
-    op_method: Optional[Callable]
+    op_method: Union[int, Callable]
     next: Optional["Pipeline"] = None
 
     def __init__(self, op_type: OpType, op_method: Callable) -> None:
@@ -38,6 +38,8 @@ class Pipeline:
                 if OpType.distinct == ptr.op_type:
                     _memo = set()
                     data = [x for x in data if x not in _memo and not _memo.add(x)]
+                elif OpType.limit == ptr.op_type:
+                    data = data[:ptr.op_method]
                 else:
                     data = ptr.op_method(data)
             ptr = ptr.next
