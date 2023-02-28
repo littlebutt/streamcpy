@@ -1,4 +1,5 @@
 from typing import Callable, Iterable, Optional, Any, Union
+from functools import reduce
 
 from optypes import OpType
 
@@ -35,6 +36,8 @@ class Pipeline:
             else:
                 if OpType.collect == ptr.op_type:
                     return data
+                if OpType.reduce == ptr.op_type:
+                    return reduce(ptr.op_method, data)
                 if OpType.distinct == ptr.op_type:
                     _memo = set()
                     data = [x for x in data if x not in _memo and not _memo.add(x)]

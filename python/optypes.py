@@ -9,8 +9,9 @@ class OpType(Enum):
     filter = 2,
     distinct = 3,
     limit = 4,
-    for_each = 5,
-    collect = 6
+    reduce = 5,
+    for_each = 6,
+    collect = 7
 
     @staticmethod
     def name_of(op_type_name: str) -> "OpType":
@@ -21,7 +22,7 @@ class OpType(Enum):
 
     @staticmethod
     def is_terminal(op_type: "OpType") -> bool:
-        if op_type in [OpType.for_each, OpType.collect]:
+        if op_type in [OpType.for_each, OpType.collect, OpType.reduce]:
             return True
         else:
             return False
