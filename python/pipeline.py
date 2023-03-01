@@ -42,6 +42,10 @@ class Pipeline:
                     return len(data)
                 if OpType.collect == ptr.op_type:
                     return data
+                if OpType.any_match == ptr.op_type:
+                    return any([ptr.op_method(x) for x in data])
+                if OpType.all_match == ptr.op_type:
+                    return all([ptr.op_method(x) for x in data])
                 if OpType.reduce == ptr.op_type:
                     return reduce(ptr.op_method, data)
                 if OpType.distinct == ptr.op_type:

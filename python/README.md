@@ -13,7 +13,7 @@ packed in the StreamPy package. Currently, these following methods are implement
 - [ ] sorted
 - [x] max/min
 - [x] count
-- [ ] any_match/all_match
+- [x] any_match/all_match
 
 Notice: The Python version is a little different with the C version due to language features
 
