@@ -34,6 +34,12 @@ class Pipeline:
                 else:
                     data = [ptr.op_method(x) for x in data]
             else:
+                if OpType.max == ptr.op_type:
+                    return max(data)
+                if OpType.min == ptr.op_type:
+                    return min(data)
+                if OpType.count == ptr.op_type:
+                    return len(data)
                 if OpType.collect == ptr.op_type:
                     return data
                 if OpType.reduce == ptr.op_type:

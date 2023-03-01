@@ -11,8 +11,8 @@ packed in the StreamPy package. Currently, these following methods are implement
 - [x] limit
 - [x] reduce
 - [ ] sorted
-- [ ] max/min
-- [ ] count
+- [x] max/min
+- [x] count
 - [ ] any_match/all_match
 
 Notice: The Python version is a little different with the C version due to language features
