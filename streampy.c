@@ -1,5 +1,7 @@
 #include <Python.h>
 
+#include "modules/pipeline.h"
+
 /*
  * Implements an example function.
  */

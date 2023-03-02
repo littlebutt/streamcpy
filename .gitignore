@@ -60,6 +60,10 @@ dkms.conf
 /vs/Debug
 /vs/x64
 
+# vsc
+
+/.vscode
+
 
 # python
 
