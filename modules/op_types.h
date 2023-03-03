@@ -14,6 +14,10 @@ enum op_type {
     OP_TYPE_FOR_EACH, // TODO: more
 };
 
+static enum op_type get_op_type(int i) {
+    return enum op_type(i);
+}
+
 
 #ifdef __cplusplus
 }

@@ -10,7 +10,7 @@ extern "C" {
 
 #include "op_types.h"
 
-typedef struct _PyPipeline{
+typedef struct _PyPipeline {
     PyObject_HEAD
 
     enum op_type type;      // op_type
@@ -20,6 +20,20 @@ typedef struct _PyPipeline{
     struct _PyPipeline* next; // next
 
 } PyPipeline;
+
+static int
+PyPipeline_init(PyPipeline* self, PyObject *args, PyObject *kwds) {
+    static char* kwlist[] = {"op_type", "op_method", NULL};
+    PyObject* op_method;
+    PyObject* next;
+    PyObject* tmp;
+    int* _i = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iOO", kwlist,
+                                    &_i, &op_method, &next)) {
+                                        return -1;
+                                    }
+    self->type = get_op_type(_i);
+}
 
 static PyTypeObject PyPipeline_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
