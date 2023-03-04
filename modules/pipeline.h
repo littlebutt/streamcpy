@@ -82,7 +82,10 @@ Pipeline_execute(Pipeline* pl, PyListObject* init_data)
             {
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
                 {
-                    PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
+                    if(!PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i)))
+                    {
+                        goto FAILURE;
+                    }
                 }
                 break;
             }
