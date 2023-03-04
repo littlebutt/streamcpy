@@ -5,18 +5,10 @@
 extern "C" {
 #endif
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-enum op_type {
-    OP_TYPE_SKIP = 0,
-    OP_TYPE_MAP,
-    OP_TYPE_FOR_EACH, // TODO: more
-};
-
-static enum op_type get_op_type(int i) {
-    return enum op_type(i);
-}
+#define OP_TYPE_SKIP 0
+#define OP_TYPE_MAP 1
+#define OP_TYPE_FOR_EACH 2
+ // TODO: more
 
 
 #ifdef __cplusplus

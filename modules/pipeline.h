@@ -10,40 +10,39 @@ extern "C" {
 
 #include "op_types.h"
 
-typedef struct _PyPipeline {
-    PyObject_HEAD
+typedef struct _Pipeline {
 
-    enum op_type type;      // op_type
+    int op_type;      // op_type
 
     PyObject* op_method;    // op_method
 
-    struct _PyPipeline* next; // next
+    struct _Pipeline* next; // next
 
-} PyPipeline;
+} Pipeline;
 
 static int
-PyPipeline_init(PyPipeline* self, PyObject *args, PyObject *kwds) {
-    static char* kwlist[] = {"op_type", "op_method", NULL};
-    PyObject* op_method;
-    PyObject* next;
-    PyObject* tmp;
-    int* _i = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iOO", kwlist,
-                                    &_i, &op_method, &next)) {
-                                        return -1;
-                                    }
-    self->type = get_op_type(_i);
+Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
+{
+    Pipeline* last = (Pipeline*)malloc(sizeof(Pipeline));
+    if (last == NULL)
+    {
+        return -1;
+    }
+    last->next = NULL;
+    last->op_type = op_type;
+    last->op_method = op_method;
+
+    Pipeline* ptr = pl;
+    while (ptr->next)
+    {
+        ptr = ptr->next;
+    }
+    ptr->next = last;
+    
+    return 0;
 }
 
-static PyTypeObject PyPipeline_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "streampy.Pipeline",
-    .tp_doc = PyDoc_STR("Pipeline Object"),
-    .tp_basicsize = sizeof(PyPipeline),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = PyType_GenericNew,
-};
+
 
 #ifdef __cplusplus
 }
