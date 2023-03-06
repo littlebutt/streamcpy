@@ -18,7 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="streampy.c">
+    <ClCompile Include="..\streampy.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,5 +47,13 @@
     <None Include="..\python\main.py">
       <Filter>Python Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\modules\op_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\modules\pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

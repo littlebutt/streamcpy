@@ -10,7 +10,10 @@ extern "C" {
 
 #include "op_types.h"
 
+static PyTypeObject* Pipeline_type;
+
 typedef struct _Pipeline {
+    PyObject_HEAD
 
     int op_type;      // op_type
 
@@ -23,9 +26,11 @@ typedef struct _Pipeline {
 static int
 Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
 {
-    Pipeline* last = (Pipeline*)malloc(sizeof(Pipeline));
+    Pipeline* last = (Pipeline*)PyObject_New(Pipeline, Pipeline_type);
     if (last == NULL)
     {
+        Py_XDECREF(pl);
+        Py_XDECREF(op_method);
         return -1;
     }
     last->next = NULL;
@@ -91,11 +96,14 @@ Pipeline_execute(Pipeline* pl, PyListObject* init_data)
             }
             default: return Py_None;
         }
+        ptr = ptr->next;
     }
     
     return Py_None;
 
     FAILURE:
+        Py_XDECREF(pl);
+        Py_XDECREF(init_data);
         return Py_None;
 }
 
