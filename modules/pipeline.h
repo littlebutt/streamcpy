@@ -42,7 +42,7 @@ Pipeline_repr(Pipeline* pl)
     {
         return NULL;
     }
-    const char* op_method_repr_str = PyString_AsString(res);
+    const char* op_method_repr_str = PyBytes_AsString(op_method_repr);
     retval = PyUnicode_FromFormat("Pipeline(%s, %d)", op_method_repr_str, pl->op_type);
     return retval;
 }
