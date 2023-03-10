@@ -47,8 +47,9 @@ Pipeline_repr(Pipeline* pl)
     return retval;
 }
 
+// inner method
 static int
-Pipeline_append(PyObject* self, Pipeline* pl, const int op_type, PyObject* op_method)
+Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
 {
     Pipeline* last = (Pipeline*)PyObject_New(Pipeline, Pipeline_type);
     if (last == NULL)
@@ -71,8 +72,9 @@ Pipeline_append(PyObject* self, Pipeline* pl, const int op_type, PyObject* op_me
     return 0;
 }
 
+// inner method
 static PyObject*
-Pipeline_execute(PyObject* self, Pipeline* pl, PyListObject* init_data)
+Pipeline_execute(Pipeline* pl, PyListObject* init_data)
 {
     PyListObject* data = init_data;
     Pipeline* ptr = pl;
@@ -140,12 +142,6 @@ static PyMemberDef Pipeline_members[] = {
     {NULL}
 };
 
-static PyMethodDef Pipeline_methods[] = {
-    {"append", (PyCFunction)Pipeline_append, METH_STATIC, PyDoc_STR("a static method for appending another Pipeline")},
-    {"execute", (PyCFunction)Pipeline_execute, METH_STATIC, PyDoc_STR("a static method for executing all operations through Pipeline")},
-    {NULL}
-};
-
 PyDoc_STRVAR(doc_pipeline,
 "Pipeline\n-\n\n\
 The inner implementation of the Pipeline in Stream.\n");
@@ -179,7 +175,7 @@ static PyTypeObject Pipeline_type = {
     0,                                      /* tp_weaklistoffset */
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
-    Pipeline_methods,                       /* tp_methods */
+    0,                                      /* tp_methods */
     Pipeline_members,                       /* tp_members */
     0,                                      /* tp_getset */
     0,                                      /* tp_base */
