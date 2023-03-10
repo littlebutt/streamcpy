@@ -48,7 +48,7 @@ Pipeline_repr(Pipeline* pl)
 }
 
 static int
-Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
+Pipeline_append(PyObject* self, Pipeline* pl, const int op_type, PyObject* op_method)
 {
     Pipeline* last = (Pipeline*)PyObject_New(Pipeline, Pipeline_type);
     if (last == NULL)
@@ -72,7 +72,7 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
 }
 
 static PyObject*
-Pipeline_execute(Pipeline* pl, PyListObject* init_data)
+Pipeline_execute(PyObject* self, Pipeline* pl, PyListObject* init_data)
 {
     PyListObject* data = init_data;
     Pipeline* ptr = pl;
@@ -133,6 +133,19 @@ Pipeline_execute(Pipeline* pl, PyListObject* init_data)
         return Py_None;
 }
 
+static PyMemberDef Pipeline_members[] = {
+    {"op_type", T_INT, offsetof(Pipeline, op_type), 0, PyDoc_STR("a value representing the method type")},
+    {"op_method", T_OBJECT, offsetof(Pipeline, op_method), 0, PyDoc_STR("a callable value for eval the given data")},
+    {"next", T_OBJECT, offsetof(Pipeline, next), 0, PyDoc_STR("a pointer pointing to the next Pipeline")},
+    {NULL}
+};
+
+static PyMethodDef Pipeline_methods[] = {
+    {"append", (PyCFunction)Pipeline_append, METH_STATIC, PyDoc_STR("a static method for appending another Pipeline")},
+    {"execute", (PyCFunction)Pipeline_execute, METH_STATIC, PyDoc_STR("a static method for executing all operations through Pipeline")},
+    {NULL}
+};
+
 PyDoc_STRVAR(doc_pipeline,
 "Pipeline\n-\n\n\
 The inner implementation of the Pipeline in Stream.\n");
@@ -159,15 +172,15 @@ static PyTypeObject Pipeline_type = {
     (PyBufferProcs *) 0,                    /* tp_as_buffer */
     (Py_TPFLAGS_DEFAULT|
      Py_TPFLAGS_BASETYPE),                  /* tp_flags */
-    doc_pipeline,                            /* tp_doc */
+    doc_pipeline,                           /* tp_doc */
     0,                                      /* tp_traverse */
     0,                                      /* tp_clear */
     0,                                      /* tp_richcompare */
     0,                                      /* tp_weaklistoffset */
     0,                                      /* tp_iter */
     0,                                      /* tp_iternext */
-    0,                                      /* tp_methods */
-    0,                                      /* tp_members */
+    Pipeline_methods,                       /* tp_methods */
+    Pipeline_members,                       /* tp_members */
     0,                                      /* tp_getset */
     0,                                      /* tp_base */
     0,                                      /* tp_dict */
