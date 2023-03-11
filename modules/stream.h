@@ -49,6 +49,63 @@ Stream_repr(Stream* st)
     return retval;
 }
 
+static PyObject*
+Stream_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    Stream* self;
+    self = (Stream*)type->tp_alloc(type, 0);
+    if (self)
+    {
+        Pipeline* head = (Pipeline*)PyObject_New(Pipeline, Pipeline_type);
+        if (!head)
+        {
+            return NULL;
+        }
+        head->op_type = OP_TYPE_SKIP;
+        head->op_method = Py_None;
+        head->next = Py_None;
+        self->head = head;
+
+        self->spliterator = Py_None;
+        return (PyObject*)self;
+    }
+    return NULL;
+}
+
+// static method
+static PyObject*
+Stream_of(PyObject* self, PyObject* args)
+{
+    Stream* st = (Stream*)PyObject_New(Stream, Stream_type);
+    if (!st)
+    {
+        return NULL;
+    }
+
+    PyObject* list_arg;
+    if (!PyArg_ParseTuple(args, "O!", PyList_Type, &list_arg))
+    {
+        return NULL;
+    }
+    Py_INCREF(list_arg);
+    st->spliterator = list_arg;
+    return (PyObject*)st;
+}
+
+static PyObject*
+Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"op_method", NULL};
+    PyObject* op_method;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &op_method))
+    {
+        return NULL;
+    }
+    Py_INCREF(op_method);
+    Pipeline_append(self->head, OP_TYPE_MAP, op_method);
+    return (PyObject*)self;
+}
+
 #ifdef __cplusplus
 }
 #endif
