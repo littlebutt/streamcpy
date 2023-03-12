@@ -178,7 +178,7 @@ static PyTypeObject Stream_type = {
     0,                                      /* tp_alloc */
     Stream_new,                             /* tp_new */
     PyObject_Del,                           /* tp_free */
-}
+};
 
 #ifdef __cplusplus
 }

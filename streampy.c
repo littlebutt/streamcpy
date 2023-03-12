@@ -1,51 +1,14 @@
 #include <Python.h>
 
-#include "modules/pipeline.h"
-
-/*
- * Implements an example function.
- */
-PyDoc_STRVAR(streampy_example_doc, "example(obj, number)\
-\
-Example function");
-
-PyObject *streampy_example(PyObject *self, PyObject *args, PyObject *kwargs) {
-    /* Shared references that do not need Py_DECREF before returning. */
-    PyObject *obj = NULL;
-    int number = 0;
-
-    /* Parse positional and keyword arguments */
-    static char* keywords[] = { "obj", "number", NULL };
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi", keywords, &obj, &number)) {
-        return NULL;
-    }
-
-    /* Function implementation starts here */
-
-    if (number < 0) {
-        PyErr_SetObject(PyExc_ValueError, obj);
-        return NULL;    /* return NULL indicates error */
-    }
-
-    Py_RETURN_NONE;
-}
-
-/*
- * List of functions to add to streampy in exec_streampy().
- */
-static PyMethodDef streampy_functions[] = {
-    { "example", (PyCFunction)streampy_example, METH_VARARGS | METH_KEYWORDS, streampy_example_doc },
-    { NULL, NULL, 0, NULL } /* marks end of array */
-};
+#include "modules/stream.h"
 
 /*
  * Initialize streampy. May be called multiple times, so avoid
  * using static state.
  */
 int exec_streampy(PyObject *module) {
-    PyModule_AddFunctions(module, streampy_functions);
 
-    PyModule_AddStringConstant(module, "__author__", "luoga");
+    PyModule_AddStringConstant(module, "__author__", "littlebutt");
     PyModule_AddStringConstant(module, "__version__", "1.0.0");
     PyModule_AddIntConstant(module, "year", 2023);
 
@@ -76,5 +39,35 @@ static PyModuleDef streampy_def = {
 };
 
 PyMODINIT_FUNC PyInit_streampy() {
-    return PyModuleDef_Init(&streampy_def);
+    PyObject* m;
+    if (PyType_Ready(&Pipeline_type) < 0)
+    {
+        return NULL;
+    }
+    if (PyType_Ready(&Stream_type) < 0)
+    {
+        return NULL;
+    }
+    m = PyModule_Create(&streampy_def);
+    if (!m)
+    {
+        return NULL;
+    }
+    Py_INCREF(&Pipeline_type);
+    Py_INCREF(&Stream_type);
+    if (PyModule_AddObject(m, "Pipeline", (PyObject *) &Pipeline_type) < 0)
+    {
+        Py_DECREF(&Pipeline_type);
+        Py_DECREF(&Stream_type);
+        Py_DECREF(m);
+        return NULL;
+    }
+    if (PyModule_AddObject(m, "Stream", (PyObject *) &Stream_type) < 0)
+    {
+        Py_DECREF(&Pipeline_type);
+        Py_DECREF(&Stream_type);
+        Py_DECREF(m);
+        return NULL;
+    }
+    return m;
 }

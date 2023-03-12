@@ -187,7 +187,7 @@ static PyTypeObject Pipeline_type = {
     0,                                      /* tp_alloc */
     PyType_GenericNew,                      /* tp_new */
     PyObject_Del,                           /* tp_free */
-}
+};
 
 #ifdef __cplusplus
 }
