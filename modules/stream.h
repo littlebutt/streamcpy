@@ -56,7 +56,7 @@ Stream_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self = (Stream*)type->tp_alloc(type, 0);
     if (self)
     {
-        Pipeline* head = (Pipeline*)PyObject_New(Pipeline, Pipeline_type);
+        Pipeline* head = PyObject_New(Pipeline, &Pipeline_type);
         if (!head)
         {
             return NULL;
@@ -76,7 +76,7 @@ Stream_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyObject*
 Stream_of(PyObject* self, PyObject* args)
 {
-    Stream* st = (Stream*)PyObject_New(Stream, Stream_type);
+    Stream* st = PyObject_New(Stream, &Stream_type);
     if (!st)
     {
         return NULL;

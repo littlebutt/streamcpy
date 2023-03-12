@@ -36,7 +36,6 @@ static PyObject*
 Pipeline_repr(Pipeline* pl)
 {
     PyObject* retval;
-    PyObject* op_method_repr;
     PyObject* op_method_repr = PyObject_Repr(pl->op_method);
     if (!op_method_repr)
     {
@@ -51,7 +50,7 @@ Pipeline_repr(Pipeline* pl)
 static int
 Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
 {
-    Pipeline* last = (Pipeline*)PyObject_New(Pipeline, Pipeline_type);
+    Pipeline* last = PyObject_New(Pipeline, &Pipeline_type);
     if (last == NULL)
     {
         Py_XDECREF(pl);
