@@ -94,6 +94,7 @@ Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_MAP, op_method);
+    Py_XINCREF(self);
     return (PyObject*)self;
 }
 
