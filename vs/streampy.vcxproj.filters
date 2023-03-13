@@ -55,5 +55,8 @@
     <ClInclude Include="..\modules\pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\modules\stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

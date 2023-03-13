@@ -41,8 +41,8 @@ Pipeline_repr(Pipeline* pl)
     {
         return NULL;
     }
-    const char* op_method_repr_str = PyBytes_AsString(op_method_repr);
-    retval = PyUnicode_FromFormat("Pipeline(%s, %d)", op_method_repr_str, pl->op_type);
+    retval = PyUnicode_FromFormat("Pipeline(%U, %d)", op_method_repr, pl->op_type);
+    Py_XDECREF(op_method_repr);
     return retval;
 }
 

@@ -9,6 +9,11 @@ extern "C" {
 #include <Python.h>
 #include "structmember.h"
 
+// Shortcut for PyCFunction casting
+#define _Py_CAST(type, expr) ((type)(expr))
+#define _PyCFunction_CAST(func) \
+    _Py_CAST(PyCFunction, _Py_CAST(void(*)(void), (func)))
+
 #include "pipeline.h"
 
 static PyTypeObject Stream_type;
@@ -38,38 +43,15 @@ Stream_repr(Stream* st)
     {
         return NULL;
     }
-    const char* sp_repr_str = PyBytes_AsString(sp_repr);
     PyObject* h_repr = PyObject_Repr(st->head);
     if (!h_repr)
     {
         return NULL;
     }
-    const char* h_repr_str = PyBytes_AsString(h_repr);
-    retval = PyUnicode_FromFormat("Stream(%s, %s)", sp_repr_str, h_repr_str);
+    retval = PyUnicode_FromFormat("Stream(%U, %U)", sp_repr, h_repr);
+    Py_XDECREF(sp_repr);
+    Py_XDECREF(h_repr);
     return retval;
-}
-
-static PyObject*
-Stream_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    Stream* self;
-    self = (Stream*)type->tp_alloc(type, 0);
-    if (self)
-    {
-        Pipeline* head = PyObject_New(Pipeline, &Pipeline_type);
-        if (!head)
-        {
-            return NULL;
-        }
-        head->op_type = OP_TYPE_SKIP;
-        head->op_method = Py_None;
-        head->next = Py_None;
-        self->head = head;
-
-        self->spliterator = Py_None;
-        return (PyObject*)self;
-    }
-    return NULL;
 }
 
 // static method
@@ -81,9 +63,18 @@ Stream_of(PyObject* self, PyObject* args)
     {
         return NULL;
     }
+    Pipeline* head = PyObject_New(Pipeline, &Pipeline_type);
+    if (!head)
+    {
+        return NULL;
+    }
+    head->op_type = OP_TYPE_SKIP;
+    head->op_method = Py_None;
+    head->next = NULL;
+    st->head= head;
 
     PyObject* list_arg;
-    if (!PyArg_ParseTuple(args, "O!", PyList_Type, &list_arg))
+    if (!PyArg_ParseTuple(args, "O", &list_arg))
     {
         return NULL;
     }
@@ -127,9 +118,9 @@ static PyMemberDef Stream_members[] = {
 };
 
 static PyMethodDef Stream_methods[] = {
-    {"of", (PyCFunction)Stream_of, METH_STATIC, PyDoc_STR("The initializing method")},
-    {"map", (PyCFunction)Stream_map, 0, PyDoc_STR("The mapping method")},
-    {"for_each", (PyCFunction)Stream_for_each, 0, PyDoc_STR("The for each method")},
+    {"of", (PyCFunction)Stream_of, METH_VARARGS | METH_STATIC, PyDoc_STR("The initializing method")},
+    {"map", _PyCFunction_CAST(Stream_map), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The mapping method")},
+    {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {NULL, NULL}
 };
 
@@ -176,7 +167,7 @@ static PyTypeObject Stream_type = {
     0,                                      /* tp_dictoffset */
     0,                                      /* tp_init */
     0,                                      /* tp_alloc */
-    Stream_new,                             /* tp_new */
+    0,                                      /* tp_new */
     PyObject_Del,                           /* tp_free */
 };
 
