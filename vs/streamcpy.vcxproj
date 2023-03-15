@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7E25695E-CF00-49E4-B5D7-2314FDED1246}</ProjectGuid>
-    <RootNamespace>streampy</RootNamespace>
+    <RootNamespace>streamcpy</RootNamespace>
     <PythonVersion>3.9</PythonVersion>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -94,34 +94,34 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>streampy$(PythonDebugSuffix)</TargetName>
+    <TargetName>streamcpy$(PythonDebugSuffix)</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonDExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streampy'); import streampy"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streamcpy'); import streamcpy"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetName>streampy</TargetName>
+    <TargetName>streamcpy</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streampy'); import streampy"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streamcpy'); import streamcpy"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>streampy$(PythonDebugSuffix)</TargetName>
+    <TargetName>streamcpy$(PythonDebugSuffix)</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonDExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streampy'); import streampy"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streamcpy'); import streamcpy"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>streampy</TargetName>
+    <TargetName>streamcpy</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streampy'); import streampy"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import streamcpy'); import streamcpy"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
@@ -190,7 +190,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\streampy.c" />
+    <ClCompile Include="..\streamcpy.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.gitignore" />

@@ -6,13 +6,13 @@
 /*
  * Documentation for streampy.
  */
-PyDoc_STRVAR(streampy_doc, "The streampy module");
+PyDoc_STRVAR(streamcpy_doc, "The streamcpy module");
 
 
-static PyModuleDef streampy_def = {
+static PyModuleDef streamcpy_def = {
     PyModuleDef_HEAD_INIT,
-    "streampy",
-    streampy_doc,
+    "streamcpy",
+    streamcpy_doc,
     -1,             /* m_size */
     NULL,           /* m_methods */
     NULL,           /* m_slots */
@@ -21,7 +21,7 @@ static PyModuleDef streampy_def = {
     NULL,           /* m_free */
 };
 
-PyMODINIT_FUNC PyInit_streampy() {
+PyMODINIT_FUNC PyInit_streamcpy() {
     PyObject* m;
     if (PyType_Ready(&Pipeline_type) < 0)
     {
@@ -31,7 +31,7 @@ PyMODINIT_FUNC PyInit_streampy() {
     {
         return NULL;
     }
-    m = PyModule_Create(&streampy_def);
+    m = PyModule_Create(&streamcpy_def);
     if (!m)
     {
         return NULL;

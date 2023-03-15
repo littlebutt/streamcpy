@@ -1,4 +1,4 @@
-# StreamPy: Stream API for Python
+# streamcpy: The Stream Api in Python
 
 StreamPy can provide an approach of processing the data in a high-effenciency way. Like in Java. you can use stream-like  methods (`map`, `filter`, `for_each` and so on) to do parrallel calculation and lazy calculation, which can accelerating your programs. What's more, The package is implemented in pure C, which means its runtime speed is even higher!
 
