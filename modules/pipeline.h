@@ -73,9 +73,27 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
 
 // inner method
 static PyObject*
-Pipeline_execute(Pipeline* pl, PyListObject* init_data)
+Pipeline_execute(Pipeline* pl, PyObject* init_data)
 {
-    PyListObject* data = init_data;
+    PyListObject* data = (PyListObject*)PyList_New(0);
+    if(!data)
+    {
+        goto FAILURE;
+    }
+    PyObject* iter = PyObject_GetIter(init_data);
+    if(!iter)
+    {
+        goto FAILURE;
+    }
+    PyObject* item;
+    while ((item = PyIter_Next(iter)))
+    {
+        if(PyList_Append(data, item) < 0)
+        {
+            goto FAILURE;
+        }
+    }
+    
     Pipeline* ptr = pl;
     while (ptr)
     {
@@ -121,16 +139,22 @@ Pipeline_execute(Pipeline* pl, PyListObject* init_data)
                 }
                 break;
             }
-            default: return Py_None;
+            default: {
+                PyErr_SetString(PyExc_NotImplementedError, "Unimplemented op_method!");
+                Py_INCREF(Py_None);
+                return Py_None;
+            }
         }
         ptr = ptr->next;
     }
-    
+    Py_INCREF(Py_None);
     return Py_None;
 
     FAILURE:
         Py_XDECREF(pl);
         Py_XDECREF(init_data);
+        Py_XDECREF(data);
+        Py_INCREF(Py_None);
         return Py_None;
 }
 
