@@ -1,6 +1,6 @@
 # streamcpy: The Stream Api in Python
 
-StreamPy can provide an approach of processing the data in a high-effenciency way. Like in Java. you can use stream-like  methods (`map`, `filter`, `for_each` and so on) to do parrallel calculation and lazy calculation, which can accelerating your programs. What's more, The package is implemented in pure C, which means its runtime speed is even higher!
+Streamcpy can provide an approach of processing the data in a high-effenciency way. Like in [Java](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html), you can use stream-like  methods (`map`, `filter`, `for_each` and so on) to do parrallel calculation and lazy calculation, which can accelerating your programs. What's more, The package is implemented in pure C, which means its runtime speed is even higher!
 
 Currently, the methods bellow is implemented.
 
@@ -18,7 +18,7 @@ Currently, the methods bellow is implemented.
 
 ## Installation
 
-(Have Not Uploaded yet)
+(Not Uploaded yet)
 
 ## Usage
 
@@ -33,21 +33,51 @@ Stream.of([1, 2, 3])
 
 ```
 
-You can put any `Iterable` type in `of` method and any `Callable` type in operation methods.
+This api supports various [Iterable](https://docs.python.org/3/library/stdtypes.html#typeiter) object in Python, like list, tuple and generator. As a result, you can call it in these way:
+
+```python
+from streampy import *
+
+Stream.of((1, 2, 3))
+    .map(lambda x: x * X)
+    .for_each(lambda x: print(x))
+
+# OR
+
+def gen():
+    l = [1, 2, 3]
+    for i in l:
+        yield i
+
+Stream.of(gen())
+    .map(lambda x: x * X)
+    .for_each(lambda x: print(x))
+
+# OR
+
+Stream.of(open("foo.txt", 'r'))
+    .map(lambda x: x * X)
+    .for_each(lambda x: print(x))   
+```
 
 ## Contribution
 
-Welcome to contribute to the project. The project is written in C. If you cannot understand Python's C API, you can reference the code in __python__ package. It is the StreamPy implemented in python but will not be packed in the package. Here is the detailed description for each directory or file:
+Welcome to contribute to the project. The project is written in C. If you cannot understand Python's C API, you can reference the code in __python__ package. It is the streamcpy implemented in python but will not be packed in the package. Here is the detailed description for each directory or file:
 
 - build: the built file of the package (`.pyd` for Windows and `.so` for Linux or Mac)
-- modules: the source code for StreamPy in C
-- python: the source code for StreamPy in python and only for reference
+- modules: the source code for streamcpy in C
+- python: the source code for streamcpy in python and only for reference
 - vs: the project files for Visual Studio
 - setup.py: the setup file for python
-- streampy.c: the entrance file for StreamPy package
+- streamcpy.c: the entrance file for streamcpy package
+- streamcpy.pyi: the `.pyi` file for streamcpy package
   
 ### Build on Windows
 
-
+- Download and install the latest [Visual Studio](https://visualstudio.microsoft.com/) or Visual Studio Build Tools at least
+- Install Python Development workload. The workload includes the Python native development tools, which bring in the C++ workload and toolsets that are necessary for native extensions.
+- Install Desktop Development with C++ workload. It comes with the default core editor, which includes basic code editing support for C/C++
+- Double-click the `.vcxproj` in vs folder and build the `.sln` file.
+- Run the project!
 
 ### Build on Linux/Mac
