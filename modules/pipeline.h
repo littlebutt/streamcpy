@@ -92,6 +92,10 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
         {
             goto FAILURE;
         }
+        while (item->ob_refcnt)
+        {
+            Py_DECREF(item);
+        }
     }
     
     Pipeline* ptr = pl;
