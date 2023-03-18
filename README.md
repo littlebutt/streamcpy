@@ -49,7 +49,9 @@ def gen():
     for i in l:
         yield i
 
-Stream.of(gen())
+g = gen()
+
+Stream.of(g)
     .map(lambda x: x * X)
     .for_each(lambda x: print(x))
 
