@@ -39,7 +39,7 @@ This api supports various [Iterable](https://docs.python.org/3/library/stdtypes.
 from streampy import *
 
 Stream.of((1, 2, 3))
-    .map(lambda x: x * X)
+    .map(lambda x: x * x)
     .for_each(lambda x: print(x))
 
 # OR
@@ -52,20 +52,21 @@ def gen():
 g = gen()
 
 Stream.of(g)
-    .map(lambda x: x * X)
+    .map(lambda x: x * x)
     .for_each(lambda x: print(x))
 
 # OR
 
 Stream.of(open("foo.txt", 'r'))
-    .map(lambda x: x * X)
+    .map(lambda x: x * x)
     .for_each(lambda x: print(x))   
 ```
 
 ## Contribution
 
-Welcome to contribute to the project. The project is written in C. If you cannot understand Python's C API, you can reference the code in __python__ package. It is the streamcpy implemented in python but will not be packed in the package. Here is the detailed description for each directory or file:
+Welcome to contribute to the project. The project is written in C. If you cannot understand Python's C API, you can refer to the code in __python__ package. It is the streamcpy implemented in python but will not be packed in the package. Here is the detailed description for each directory or file:
 
+- benchmark: a roughly comparison between Python and C++ (*Python wins*)
 - build: the built file of the package (`.pyd` for Windows and `.so` for Linux or Mac)
 - modules: the source code for streamcpy in C
 - python: the source code for streamcpy in python and only for reference
