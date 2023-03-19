@@ -21,6 +21,9 @@
     <ClCompile Include="..\streamcpy.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\benchmark\benchmark.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\python\stream.py">

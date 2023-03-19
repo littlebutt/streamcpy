@@ -190,6 +190,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\benchmark\benchmark.cpp" />
     <ClCompile Include="..\streamcpy.c" />
   </ItemGroup>
   <ItemGroup>
