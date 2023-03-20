@@ -77,10 +77,25 @@ Welcome to contribute to the project. The project is written in C. If you cannot
   
 ### Build on Windows
 
-- Download and install the latest [Visual Studio](https://visualstudio.microsoft.com/) or Visual Studio Build Tools at least
-- Install Python Development workload. The workload includes the Python native development tools, which bring in the C++ workload and toolsets that are necessary for native extensions.
+- Download and install the latest [Visual Studio](https://visualstudio.microsoft.com/)
+- Install Python Development workload. The workload includes the Python native development tools, which bring in the C++ workload and toolsets that are necessary for native extensions
 - Install Desktop Development with C++ workload. It comes with the default core editor, which includes basic code editing support for C/C++
-- Double-click the `.vcxproj` in vs folder and build the `.sln` file.
+- Double-click the `.vcxproj` in vs folder and build the `.sln` file
 - Run the project!
 
 ### Build on Linux/Mac
+
+- Download the Python interpreter from the offcial website
+- Download the gcc(>7.5.0)
+- Run the command below for building
+  
+```shell
+python setup.py build
+```
+
+- Run the command below for installing
+  
+```shell
+python setup.py install
+```
+> NOTE: The method is also suitable for Windows if Visual Studio or Visual Studio Build Tools installed.
