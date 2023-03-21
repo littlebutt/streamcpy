@@ -4,7 +4,7 @@ Streamcpy can provide an approach of processing the data in a high-effenciency w
 
 Currently, the methods bellow is implemented.
 
-- [ ] filter
+- [x] filter
 - [x] map
 - [x] for_each
 - [ ] collect
@@ -33,7 +33,7 @@ Stream.of([1, 2, 3])
 
 ```
 
-This api supports various [Iterable](https://docs.python.org/3/library/stdtypes.html#typeiter) object in Python, like list, tuple and generator. As a result, you can call it in these way:
+This api supports various [Iterable](https://docs.python.org/3/library/stdtypes.html#typeiter) object in Python, like list, tuple and generator. As a result, you can call it in these ways:
 
 ```python
 from streampy import *
