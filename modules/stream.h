@@ -99,6 +99,21 @@ Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
 }
 
 static PyObject*
+Stream_filter(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"op_method", NULL};
+    PyObject* op_method;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &op_method))
+    {
+        return NULL;
+    }
+    Py_INCREF(op_method);
+    Pipeline_append(self->head, OP_TYPE_FILTER, op_method);
+    Py_XINCREF(self);
+    return (PyObject*)self;
+}
+
+static PyObject*
 Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
 {
     static char* kwlist[] = {"op_method", NULL};
@@ -121,6 +136,7 @@ static PyMemberDef Stream_members[] = {
 static PyMethodDef Stream_methods[] = {
     {"of", (PyCFunction)Stream_of, METH_VARARGS | METH_STATIC, PyDoc_STR("The initializing method")},
     {"map", _PyCFunction_CAST(Stream_map), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The mapping method")},
+    {"filter", _PyCFunction_CAST(Stream_filter), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The filter method")},
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {NULL, NULL}
 };

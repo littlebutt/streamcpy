@@ -128,6 +128,43 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 Py_XDECREF(tmp);
                 break;
             }
+            case OP_TYPE_FILTER:
+            {
+                PyListObject* new_data = (PyListObject*)PyList_New(0);
+                if (!new_data)
+                {
+                    goto FAILURE;
+                }
+                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                {
+                    PyObject* item = PyList_GetItem(data, i);
+                    Py_XINCREF(item);
+                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", item);
+                    if (!res)
+                    {
+                        Py_XDECREF(item);
+                        goto FAILURE;
+                    }
+                    if (!PyBool_Check(res))
+                    {
+                        PyErr_SetString(PyExc_RuntimeError, "The given method cannot return a bool");
+                        Py_XDECREF(item);
+                        Py_DECREF(res);
+                        goto FAILURE;
+                    }
+                    if(res == Py_True && PyList_Append(new_data, item) == -1)
+                    {
+                        Py_XDECREF(item);
+                        Py_DECREF(res);
+                        goto FAILURE;
+                    }
+                    Py_DECREF(res);
+                }
+                PyObject* tmp = data;
+                data = new_data;
+                Py_XDECREF(tmp);
+                break;
+            }
             case OP_TYPE_FOR_EACH:
             {
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
