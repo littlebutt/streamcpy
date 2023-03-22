@@ -7,7 +7,7 @@ Currently, the methods bellow is implemented.
 - [x] filter
 - [x] map
 - [x] for_each
-- [ ] collect
+- [x] collect
 - [ ] distinct
 - [ ] limit
 - [ ] reduce
