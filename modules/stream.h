@@ -124,7 +124,25 @@ Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_FOR_EACH, op_method);
-    return Pipeline_execute(self->head, (PyListObject*)self->spliterator);
+    return Pipeline_execute(self->head, self->spliterator);
+}
+static PyObject*
+Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"collector", NULL};
+    PyObject* op_method;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &op_method))
+    {
+        return NULL;
+    }
+    if (!Py_IS_TYPE(op_method, &PyList_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "Only support List type currently");
+        return NULL;
+    }
+    Py_INCREF(op_method);
+    Pipeline_append(self->head, OP_TYPE_COLLECT, op_method);
+    return Pipeline_execute(self->head, self->spliterator);
 }
 
 static PyMemberDef Stream_members[] = {
@@ -138,6 +156,7 @@ static PyMethodDef Stream_methods[] = {
     {"map", _PyCFunction_CAST(Stream_map), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The mapping method")},
     {"filter", _PyCFunction_CAST(Stream_filter), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The filter method")},
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
+    {"collect", _PyCFunction_CAST(Stream_collect), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The collect method")},
     {NULL, NULL}
 };
 

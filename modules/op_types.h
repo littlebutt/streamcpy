@@ -9,6 +9,7 @@ extern "C" {
 #define OP_TYPE_MAP 1
 #define OP_TYPE_FOR_EACH 2
 #define OP_TYPE_FILTER 3
+#define OP_TYPE_COLLECT 4
  // TODO: more
 
 

@@ -176,6 +176,17 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 }
                 break;
             }
+            case OP_TYPE_COLLECT:
+            {
+                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                {
+                    if (PyList_Append(ptr->op_method, PyList_GetItem(data, i)) == -1)
+                    {
+                        goto FAILURE;
+                    }
+                }
+                break;
+            }
             default: {
                 PyErr_SetString(PyExc_NotImplementedError, "Unimplemented op_method!");
                 Py_INCREF(Py_None);
