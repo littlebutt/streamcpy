@@ -28,7 +28,7 @@ Like Stream Api in Java but slightly different in details
 from streampy import *
 
 Stream.of([1, 2, 3])
-    .map(lambda x: x * X)
+    .map(lambda x: x * x)
     .for_each(lambda x: print(x))
 
 ```
