@@ -8,7 +8,7 @@ Currently, the methods bellow is implemented.
 - [x] map
 - [x] for_each
 - [x] collect
-- [ ] distinct
+- [x] distinct
 - [ ] limit
 - [ ] reduce
 - [ ] sorted
