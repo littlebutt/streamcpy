@@ -9,7 +9,7 @@ Currently, the methods bellow is implemented.
 - [x] for_each
 - [x] collect
 - [x] distinct
-- [ ] limit
+- [x] limit
 - [ ] reduce
 - [ ] sorted
 - [ ] max/min
