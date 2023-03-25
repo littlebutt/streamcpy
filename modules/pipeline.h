@@ -165,6 +165,45 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 Py_XDECREF(tmp);
                 break;
             }
+            case OP_TYPE_DISTINCT:
+            {
+                PyObject* _set = PySet_New(NULL);
+                if (!_set)
+                {
+                    goto FAILURE;
+                }
+                PyListObject* new_data = (PyListObject*)PyList_New(0);
+                if (!new_data)
+                {
+                    Py_DECREF(_set);
+                    goto FAILURE;
+                }
+                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                {
+                    PyObject* item = PyList_GetItem(data, i);
+                    if (PySet_Contains(_set, item) <= 0)
+                    {
+                        if (PyList_Append(new_data, item) < 0)
+                        {
+                            Py_DECREF(_set);
+                            Py_DECREF(new_data);
+                            goto FAILURE;
+                        }
+                        Py_XINCREF(item);
+                        if (PySet_Add(_set, item))
+                        {
+                            Py_DECREF(_set);
+                            Py_DECREF(new_data);
+                            goto FAILURE;
+                        }
+                    }
+                }
+                PyObject* tmp = data;
+                data = new_data;
+                Py_XDECREF(tmp);
+                Py_DECREF(_set);
+                break;
+            }
             case OP_TYPE_FOR_EACH:
             {
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)

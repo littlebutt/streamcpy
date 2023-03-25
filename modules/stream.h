@@ -114,6 +114,15 @@ Stream_filter(Stream* self, PyObject* args, PyObject* kwargs)
 }
 
 static PyObject*
+Stream_distinct(Stream* self, PyObject* Py_UNUSED(args))
+{
+    Py_INCREF(Py_None);
+    Pipeline_append(self->head, OP_TYPE_DISTINCT, Py_None);
+    Py_XINCREF(self);
+    return (PyObject*)self;
+}
+
+static PyObject*
 Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
 {
     static char* kwlist[] = {"op_method", NULL};
@@ -126,6 +135,7 @@ Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
     Pipeline_append(self->head, OP_TYPE_FOR_EACH, op_method);
     return Pipeline_execute(self->head, self->spliterator);
 }
+
 static PyObject*
 Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
 {
@@ -155,6 +165,7 @@ static PyMethodDef Stream_methods[] = {
     {"of", (PyCFunction)Stream_of, METH_VARARGS | METH_STATIC, PyDoc_STR("The initializing method")},
     {"map", _PyCFunction_CAST(Stream_map), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The mapping method")},
     {"filter", _PyCFunction_CAST(Stream_filter), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The filter method")},
+    {"distinct", (PyCFunction)Stream_distinct, METH_NOARGS, PyDoc_STR("The distinct method")},
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {"collect", _PyCFunction_CAST(Stream_collect), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The collect method")},
     {NULL, NULL}
