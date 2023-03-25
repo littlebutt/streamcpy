@@ -123,6 +123,26 @@ Stream_distinct(Stream* self, PyObject* Py_UNUSED(args))
 }
 
 static PyObject*
+Stream_limit(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"limit", NULL};
+    PyObject* limit;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &limit))
+    {
+        return NULL;
+    }
+    if (!PyLong_Check(limit))
+    {
+        PyErr_SetString(PyExc_TypeError, "The argument must be a int or its subclass");
+        return NULL;
+    }
+    Py_INCREF(limit);
+    Pipeline_append(self->head, OP_TYPE_LIMIT, limit);
+    Py_XINCREF(self);
+    return (PyObject*)self;
+}
+
+static PyObject*
 Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
 {
     static char* kwlist[] = {"op_method", NULL};
@@ -163,9 +183,10 @@ static PyMemberDef Stream_members[] = {
 
 static PyMethodDef Stream_methods[] = {
     {"of", (PyCFunction)Stream_of, METH_VARARGS | METH_STATIC, PyDoc_STR("The initializing method")},
-    {"map", _PyCFunction_CAST(Stream_map), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The mapping method")},
+    {"map", _PyCFunction_CAST(Stream_map), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The map method")},
     {"filter", _PyCFunction_CAST(Stream_filter), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The filter method")},
     {"distinct", (PyCFunction)Stream_distinct, METH_NOARGS, PyDoc_STR("The distinct method")},
+    {"limit", _PyCFunction_CAST(Stream_limit), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The limit method")},
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {"collect", _PyCFunction_CAST(Stream_collect), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The collect method")},
     {NULL, NULL}

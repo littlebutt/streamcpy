@@ -204,6 +204,18 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 Py_DECREF(_set);
                 break;
             }
+            case OP_TYPE_LIMIT:
+            {
+                PyListObject* new_data = PyList_GetSlice(data, 0, PyLong_AsSsize_t(ptr->op_method));
+                if (!new_data)
+                {
+                    goto FAILURE;
+                }
+                PyObject* tmp = data;
+                data = new_data;
+                Py_XDECREF(tmp);
+                break;
+            }
             case OP_TYPE_FOR_EACH:
             {
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
