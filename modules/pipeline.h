@@ -83,6 +83,7 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
     PyObject* iter = PyObject_GetIter(init_data);
     if(!iter)
     {
+        Py_DECREF(data);
         goto FAILURE;
     }
     PyObject* item;
@@ -90,8 +91,12 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
     {
         if(PyList_Append(data, item) < 0)
         {
+            Py_DECREF(data);
+            Py_DECREF(iter);
+            Py_DECREF(item);
             goto FAILURE;
         }
+        Py_DECREF(item);
     }
     
     Pipeline* ptr = pl;
@@ -122,6 +127,7 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                     {
                         goto FAILURE;
                     }
+                    Py_XDECREF(res);
                 }
                 PyObject* tmp = data;
                 data = new_data;
@@ -158,6 +164,7 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                         Py_DECREF(res);
                         goto FAILURE;
                     }
+                    Py_XDECREF(item);
                     Py_DECREF(res);
                 }
                 PyObject* tmp = data;
@@ -189,7 +196,6 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                             Py_DECREF(new_data);
                             goto FAILURE;
                         }
-                        Py_XINCREF(item);
                         if (PySet_Add(_set, item))
                         {
                             Py_DECREF(_set);
