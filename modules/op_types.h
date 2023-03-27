@@ -12,6 +12,7 @@ extern "C" {
 #define OP_TYPE_COLLECT 4
 #define OP_TYPE_DISTINCT 5
 #define OP_TYPE_LIMIT 6
+#define OP_TYPE_REDUCE 7
  // TODO: more
 
 

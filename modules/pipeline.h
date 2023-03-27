@@ -227,6 +227,36 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 }
                 break;
             }
+            case OP_TYPE_REDUCE:
+            {
+                if (PyList_Size(data) == 0)
+                {
+                    PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
+                    goto FAILURE;
+                }
+                PyObject* res = PyList_GetItem(data, 0);
+                if (PyList_Size(data) == 1)
+                {
+                    Py_INCREF(res);
+                    return res;
+                }
+                for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
+                {
+                    PyObject* param = PyList_GetItem(data, i);
+                    PyObject* tmp = PyObject_CallFunction(ptr->op_method, "OO", res, param);
+                    if (!tmp)
+                    {
+                        PyErr_SetString(PyExc_RuntimeError, "The reduce method is invoked with a exception");
+                        goto FAILURE;
+                    }
+                    else
+                    {
+                        Py_XDECREF(res);
+                        res = tmp;
+                    }
+                }
+                return res;
+            }
             case OP_TYPE_COLLECT:
             {
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
