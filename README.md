@@ -10,7 +10,7 @@ Currently, the methods bellow is implemented.
 - [x] collect
 - [x] distinct
 - [x] limit
-- [ ] reduce
+- [x] reduce
 - [ ] sorted
 - [ ] max/min
 - [ ] count
