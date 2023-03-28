@@ -98,6 +98,7 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
         }
         Py_DECREF(item);
     }
+    Py_DECREF(init_data);
     
     Pipeline* ptr = pl;
     while (ptr)
@@ -243,6 +244,8 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 PyObject* res = PyList_GetItem(data, 0);
                 if (PyList_Size(data) == 1)
                 {
+                    Py_XDECREF(pl);
+                    Py_XDECREF(data);
                     Py_INCREF(res);
                     return res;
                 }
@@ -261,6 +264,8 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                         res = tmp;
                     }
                 }
+                Py_XDECREF(pl);
+                Py_XDECREF(data);
                 return res;
             }
             case OP_TYPE_COLLECT:
@@ -276,6 +281,8 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
             }
             default: {
                 PyErr_SetString(PyExc_NotImplementedError, "Unimplemented op_method!");
+                Py_XDECREF(pl);
+                Py_XDECREF(data);
                 Py_INCREF(Py_None);
                 return Py_None;
             }
@@ -287,7 +294,6 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
 
     FAILURE:
         Py_XDECREF(pl);
-        Py_XDECREF(init_data);
         Py_XDECREF(data);
         Py_INCREF(Py_None);
         return Py_None;
