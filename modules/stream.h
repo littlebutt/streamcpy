@@ -171,6 +171,20 @@ Stream_reduce(Stream* self, PyObject* args, PyObject* kwargs)
 }
 
 static PyObject*
+Stream_max(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"op_method", NULL};
+    PyObject* op_method;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &op_method))
+    {
+        return NULL;
+    }
+    Py_INCREF(op_method);
+    Pipeline_append(self->head, OP_TYPE_MAX, op_method);
+    return Pipeline_execute(self->head, self->spliterator);
+}
+
+static PyObject*
 Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
 {
     static char* kwlist[] = {"collector", NULL};
@@ -203,6 +217,7 @@ static PyMethodDef Stream_methods[] = {
     {"limit", _PyCFunction_CAST(Stream_limit), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The limit method")},
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {"reduce", _PyCFunction_CAST(Stream_reduce), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The reduce method")},
+    {"max",  _PyCFunction_CAST(Stream_max), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The max method")},
     {"collect", _PyCFunction_CAST(Stream_collect), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The collect method")},
     {NULL, NULL}
 };

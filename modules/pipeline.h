@@ -268,6 +268,43 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 Py_XDECREF(data);
                 return res;
             }
+            case OP_TYPE_MAX:
+            {
+                if (PyList_Size(data) == 0)
+                {
+                    PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
+                    goto FAILURE;
+                }
+                PyObject* res = PyList_GetItem(data, 0);
+                if (PyList_Size(data) == 1)
+                {
+                    Py_XDECREF(pl);
+                    Py_XDECREF(data);
+                    Py_INCREF(res);
+                    return res;
+                }
+                for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
+                {
+                    PyObject* _compared = PyList_GetItem(data, i);
+                    PyObject* _res1 = PyObject_CallFunction(ptr->op_method, "O", _compared);
+                    PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
+                    if (!_res1 || !_res2)
+                    {
+                        PyErr_SetString(PyExc_RuntimeError, "The max method is invoked with a exception");
+                        Py_XDECREF(_res1);
+                        Py_XDECREF(_res2);
+                        goto FAILURE;
+                    }
+                    if (PyObject_RichCompareBool(_res1, _res2, Py_GT) == 1)
+                    {
+                        res = _compared;
+                    }
+                }
+                Py_INCREF(res);
+                Py_XDECREF(pl);
+                Py_XDECREF(data);
+                return res;
+            }
             case OP_TYPE_COLLECT:
             {
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
