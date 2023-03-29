@@ -66,6 +66,7 @@ Stream_of(PyObject* self, PyObject* args)
     Pipeline* head = PyObject_New(Pipeline, &Pipeline_type);
     if (!head)
     {
+        Py_XDECREF(st);
         return NULL;
     }
     head->op_type = OP_TYPE_SKIP;
@@ -76,6 +77,8 @@ Stream_of(PyObject* self, PyObject* args)
     PyObject* list_arg;
     if (!PyArg_ParseTuple(args, "O", &list_arg))
     {
+        Py_XDECREF(st);
+        Py_XDECREF(head);
         return NULL;
     }
     Py_INCREF(list_arg);
@@ -153,7 +156,10 @@ Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_FOR_EACH, op_method);
-    return Pipeline_execute(self->head, self->spliterator);
+    PyObject* retval = Pipeline_execute(self->head, self->spliterator);
+    Py_DECREF(self->head);
+    Py_DECREF(self->spliterator);
+    return retval;
 }
 
 static PyObject*
@@ -167,7 +173,10 @@ Stream_reduce(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_REDUCE, op_method);
-    return Pipeline_execute(self->head, self->spliterator);
+    PyObject* retval = Pipeline_execute(self->head, self->spliterator);
+    Py_DECREF(self->head);
+    Py_DECREF(self->spliterator);
+    return retval;
 }
 
 static PyObject*
@@ -181,7 +190,38 @@ Stream_max(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_MAX, op_method);
-    return Pipeline_execute(self->head, self->spliterator);
+    PyObject* retval = Pipeline_execute(self->head, self->spliterator);
+    Py_DECREF(self->head);
+    Py_DECREF(self->spliterator);
+    return retval;
+}
+
+static PyObject*
+Stream_min(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"op_method", NULL};
+    PyObject* op_method;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &op_method))
+    {
+        return NULL;
+    }
+    Py_INCREF(op_method);
+    Pipeline_append(self->head, OP_TYPE_MIN, op_method);
+    PyObject* retval = Pipeline_execute(self->head, self->spliterator);
+    Py_DECREF(self->head);
+    Py_DECREF(self->spliterator);
+    return retval;
+}
+
+static PyObject*
+Stream_count(Stream* self, PyObject* Py_UNUSED(args))
+{
+    Py_INCREF(Py_None);
+    Pipeline_append(self->head, OP_TYPE_COUNT, Py_None);
+    PyObject* retval = Pipeline_execute(self->head, self->spliterator);
+    Py_DECREF(self->head);
+    Py_DECREF(self->spliterator);
+    return retval;
 }
 
 static PyObject*
@@ -200,7 +240,10 @@ Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_COLLECT, op_method);
-    return Pipeline_execute(self->head, self->spliterator);
+    PyObject* retval = Pipeline_execute(self->head, self->spliterator);
+    Py_DECREF(self->head);
+    Py_DECREF(self->spliterator);
+    return retval;
 }
 
 static PyMemberDef Stream_members[] = {
@@ -218,6 +261,8 @@ static PyMethodDef Stream_methods[] = {
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {"reduce", _PyCFunction_CAST(Stream_reduce), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The reduce method")},
     {"max",  _PyCFunction_CAST(Stream_max), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The max method")},
+    {"min",  _PyCFunction_CAST(Stream_min), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The min method")},
+    {"count", (PyCFunction)Stream_count, METH_NOARGS, PyDoc_STR("The count method")},
     {"collect", _PyCFunction_CAST(Stream_collect), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The collect method")},
     {NULL, NULL}
 };

@@ -16,6 +16,7 @@ extern "C" {
 #define OP_TYPE_SORTED 8
 #define OP_TYPE_MAX 9
 #define OP_TYPE_MIN 10
+#define OP_TYPE_COUNT 11
  // TODO: more
 
 

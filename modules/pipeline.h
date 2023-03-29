@@ -53,8 +53,6 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
     Pipeline* last = PyObject_New(Pipeline, &Pipeline_type);
     if (last == NULL)
     {
-        Py_XDECREF(pl);
-        Py_XDECREF(op_method);
         return -1;
     }
     last->next = NULL;
@@ -73,7 +71,7 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
 
 // inner method
 static PyObject*
-Pipeline_execute(Pipeline* pl, PyObject* init_data)
+Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed ref*/)
 {
     PyListObject* data = (PyListObject*)PyList_New(0);
     if(!data)
@@ -83,7 +81,6 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
     PyObject* iter = PyObject_GetIter(init_data);
     if(!iter)
     {
-        Py_DECREF(data);
         goto FAILURE;
     }
     PyObject* item;
@@ -91,14 +88,12 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
     {
         if(PyList_Append(data, item) < 0)
         {
-            Py_DECREF(data);
             Py_DECREF(iter);
             Py_DECREF(item);
             goto FAILURE;
         }
         Py_DECREF(item);
     }
-    Py_DECREF(init_data);
     
     Pipeline* ptr = pl;
     while (ptr)
@@ -126,6 +121,7 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                     }
                     if(PyList_Append(new_data, res) == -1)
                     {
+                        Py_XDECREF(res);
                         goto FAILURE;
                     }
                     Py_XDECREF(res);
@@ -244,9 +240,8 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 PyObject* res = PyList_GetItem(data, 0);
                 if (PyList_Size(data) == 1)
                 {
-                    Py_XDECREF(pl);
-                    Py_XDECREF(data);
                     Py_INCREF(res);
+                    Py_XDECREF(data);
                     return res;
                 }
                 for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
@@ -264,7 +259,6 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                         res = tmp;
                     }
                 }
-                Py_XDECREF(pl);
                 Py_XDECREF(data);
                 return res;
             }
@@ -278,9 +272,8 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                 PyObject* res = PyList_GetItem(data, 0);
                 if (PyList_Size(data) == 1)
                 {
-                    Py_XDECREF(pl);
-                    Py_XDECREF(data);
                     Py_INCREF(res);
+                    Py_XDECREF(data);
                     return res;
                 }
                 for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
@@ -301,7 +294,51 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
                     }
                 }
                 Py_INCREF(res);
-                Py_XDECREF(pl);
+                Py_XDECREF(data);
+                return res;
+            }
+            case OP_TYPE_MIN:
+            {
+                if (PyList_Size(data) == 0)
+                {
+                    PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
+                    goto FAILURE;
+                }
+                PyObject* res = PyList_GetItem(data, 0);
+                if (PyList_Size(data) == 1)
+                {
+                    Py_INCREF(res);
+                    Py_XDECREF(data);
+                    return res;
+                }
+                for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
+                {
+                    PyObject* _compared = PyList_GetItem(data, i);
+                    PyObject* _res1 = PyObject_CallFunction(ptr->op_method, "O", _compared);
+                    PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
+                    if (!_res1 || !_res2)
+                    {
+                        PyErr_SetString(PyExc_RuntimeError, "The max method is invoked with a exception");
+                        Py_XDECREF(_res1);
+                        Py_XDECREF(_res2);
+                        goto FAILURE;
+                    }
+                    if (PyObject_RichCompareBool(_res1, _res2, Py_LT) == 1)
+                    {
+                        res = _compared;
+                    }
+                }
+                Py_INCREF(res);
+                Py_XDECREF(data);
+                return res;
+            }
+            case OP_TYPE_COUNT:
+            {
+                PyObject* res = PyLong_FromSsize_t(PyList_Size(data));
+                if (!res)
+                {
+                    goto FAILURE;
+                }
                 Py_XDECREF(data);
                 return res;
             }
@@ -318,7 +355,6 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
             }
             default: {
                 PyErr_SetString(PyExc_NotImplementedError, "Unimplemented op_method!");
-                Py_XDECREF(pl);
                 Py_XDECREF(data);
                 Py_INCREF(Py_None);
                 return Py_None;
@@ -330,7 +366,6 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
     return Py_None;
 
     FAILURE:
-        Py_XDECREF(pl);
         Py_XDECREF(data);
         Py_INCREF(Py_None);
         return Py_None;
