@@ -12,8 +12,8 @@ Currently, the methods bellow is implemented.
 - [x] limit
 - [x] reduce
 - [ ] sorted
-- [ ] max/min
-- [ ] count
+- [x] max/min
+- [x] count
 - [ ] any_match/all_match
 
 ## Installation
