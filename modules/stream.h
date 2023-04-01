@@ -29,8 +29,14 @@ typedef struct {
 static void
 Stream_dealloc(Stream* st)
 {
-    Py_XDECREF(st->head);
-    Py_XDECREF(st->spliterator);
+    if (st->head && Py_REFCNT(st->head) >= 0)
+    {
+        Py_DECREF(st->head);
+    }
+    if (st->spliterator && Py_REFCNT(st->spliterator) >= 0)
+    {
+        Py_DECREF(st->spliterator);
+    }
     Py_TYPE(st)->tp_free(st);
 }
 
@@ -97,7 +103,6 @@ Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_MAP, op_method);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -112,7 +117,6 @@ Stream_filter(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_FILTER, op_method);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -141,7 +145,6 @@ Stream_limit(Stream* self, PyObject* args, PyObject* kwargs)
         PyErr_SetString(PyExc_TypeError, "The argument must be a int or its subclass");
         return NULL;
     }
-    Py_INCREF(limit);
     Pipeline_append(self->head, OP_TYPE_LIMIT, limit);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -156,11 +159,8 @@ Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_FOR_EACH, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
-    Py_DECREF(self->head);
-    Py_DECREF(self->spliterator);
     return retval;
 }
 
@@ -173,11 +173,8 @@ Stream_reduce(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_REDUCE, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
-    Py_DECREF(self->head);
-    Py_DECREF(self->spliterator);
     return retval;
 }
 
@@ -190,11 +187,8 @@ Stream_max(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_MAX, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
-    Py_DECREF(self->head);
-    Py_DECREF(self->spliterator);
     return retval;
 }
 
@@ -207,11 +201,8 @@ Stream_min(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_MIN, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
-    Py_DECREF(self->head);
-    Py_DECREF(self->spliterator);
     return retval;
 }
 
@@ -221,8 +212,6 @@ Stream_count(Stream* self, PyObject* Py_UNUSED(args))
     Py_INCREF(Py_None);
     Pipeline_append(self->head, OP_TYPE_COUNT, Py_None);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
-    Py_DECREF(self->head);
-    Py_DECREF(self->spliterator);
     return retval;
 }
 
@@ -240,11 +229,8 @@ Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
         PyErr_SetString(PyExc_TypeError, "Only support List type currently");
         return NULL;
     }
-    Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_COLLECT, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
-    Py_DECREF(self->head);
-    Py_DECREF(self->spliterator);
     return retval;
 }
 

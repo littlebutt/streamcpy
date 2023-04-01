@@ -27,8 +27,14 @@ typedef struct _Pipeline {
 static void
 Pipeline_dealloc(Pipeline* pl)
 {
-    Py_XDECREF(pl->op_method);
-    Py_XDECREF(pl->next);
+    if (pl->op_method && Py_REFCNT(pl->op_method) >= 0)
+    {
+        Py_DECREF(pl->op_method);
+    }
+    if (pl->next && Py_REFCNT(pl->next) >= 0)
+    {
+        Py_DECREF(pl->next);
+    }
     Py_TYPE(pl)->tp_free(pl);
 }
 
@@ -94,7 +100,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
         }
         Py_DECREF(item);
     }
-    Py_DECREF(iter);
+    Py_XDECREF(iter);
     
     Pipeline* ptr = pl;
     while (ptr)
