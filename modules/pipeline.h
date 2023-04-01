@@ -94,6 +94,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
         }
         Py_DECREF(item);
     }
+    Py_DECREF(iter);
     
     Pipeline* ptr = pl;
     while (ptr)
@@ -117,18 +118,20 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     PyObject* res = PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
                     if (!res)
                     {
+                        Py_DECREF(new_data);
                         goto FAILURE;
                     }
                     if(PyList_Append(new_data, res) == -1)
                     {
-                        Py_XDECREF(res);
+                        Py_DECREF(res);
+                        Py_DECREF(new_data);
                         goto FAILURE;
                     }
-                    Py_XDECREF(res);
+                    Py_DECREF(res);
                 }
                 PyObject* tmp = data;
                 data = new_data;
-                Py_XDECREF(tmp);
+                Py_DECREF(tmp);
                 break;
             }
             case OP_TYPE_FILTER:
@@ -141,32 +144,35 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
                 {
                     PyObject* item = PyList_GetItem(data, i);
-                    Py_XINCREF(item);
+                    Py_INCREF(item);
                     PyObject* res = PyObject_CallFunction(ptr->op_method, "O", item);
                     if (!res)
                     {
-                        Py_XDECREF(item);
+                        Py_DECREF(item);
+                        Py_DECREF(new_data);
                         goto FAILURE;
                     }
                     if (!PyBool_Check(res))
                     {
                         PyErr_SetString(PyExc_RuntimeError, "The given method cannot return a bool");
-                        Py_XDECREF(item);
+                        Py_DECREF(item);
+                        Py_DECREF(new_data);
                         Py_DECREF(res);
                         goto FAILURE;
                     }
                     if(res == Py_True && PyList_Append(new_data, item) == -1)
                     {
-                        Py_XDECREF(item);
+                        Py_DECREF(item);
+                        Py_DECREF(new_data);
                         Py_DECREF(res);
                         goto FAILURE;
                     }
-                    Py_XDECREF(item);
+                    Py_DECREF(item);
                     Py_DECREF(res);
                 }
                 PyObject* tmp = data;
                 data = new_data;
-                Py_XDECREF(tmp);
+                Py_DECREF(tmp);
                 break;
             }
             case OP_TYPE_DISTINCT:
@@ -185,25 +191,29 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
                 {
                     PyObject* item = PyList_GetItem(data, i);
+                    Py_INCREF(item);
                     if (PySet_Contains(_set, item) <= 0)
                     {
                         if (PyList_Append(new_data, item) < 0)
                         {
+                            Py_DECREF(item);
                             Py_DECREF(_set);
                             Py_DECREF(new_data);
                             goto FAILURE;
                         }
                         if (PySet_Add(_set, item))
                         {
+                            Py_DECREF(item);
                             Py_DECREF(_set);
                             Py_DECREF(new_data);
                             goto FAILURE;
                         }
                     }
+                    Py_DECREF(item);
                 }
                 PyObject* tmp = data;
                 data = new_data;
-                Py_XDECREF(tmp);
+                Py_DECREF(tmp);
                 Py_DECREF(_set);
                 break;
             }
@@ -216,7 +226,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 }
                 PyObject* tmp = data;
                 data = new_data;
-                Py_XDECREF(tmp);
+                Py_DECREF(tmp);
                 break;
             }
             case OP_TYPE_FOR_EACH:
@@ -238,10 +248,10 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     goto FAILURE;
                 }
                 PyObject* res = PyList_GetItem(data, 0);
+                Py_INCREF(res);
                 if (PyList_Size(data) == 1)
                 {
-                    Py_INCREF(res);
-                    Py_XDECREF(data);
+                    Py_DECREF(data);
                     return res;
                 }
                 for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
@@ -251,15 +261,17 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     if (!tmp)
                     {
                         PyErr_SetString(PyExc_RuntimeError, "The reduce method is invoked with a exception");
+                        Py_DECREF(res);
                         goto FAILURE;
                     }
                     else
                     {
-                        Py_XDECREF(res);
+                        PyObject* _t = res;
+                        Py_XDECREF(_t);
                         res = tmp;
                     }
                 }
-                Py_XDECREF(data);
+                Py_DECREF(data);
                 return res;
             }
             case OP_TYPE_MAX:
@@ -270,10 +282,10 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     goto FAILURE;
                 }
                 PyObject* res = PyList_GetItem(data, 0);
+                Py_INCREF(res);
                 if (PyList_Size(data) == 1)
                 {
-                    Py_INCREF(res);
-                    Py_XDECREF(data);
+                    Py_DECREF(data);
                     return res;
                 }
                 for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
@@ -286,15 +298,20 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                         PyErr_SetString(PyExc_RuntimeError, "The max method is invoked with a exception");
                         Py_XDECREF(_res1);
                         Py_XDECREF(_res2);
+                        Py_DECREF(res);
                         goto FAILURE;
                     }
                     if (PyObject_RichCompareBool(_res1, _res2, Py_GT) == 1)
                     {
+                        PyObject* _t = res;
+                        Py_DECREF(_t);
+                        Py_INCREF(_compared);
                         res = _compared;
                     }
+                    Py_XDECREF(_res1);
+                    Py_XDECREF(_res2);
                 }
-                Py_INCREF(res);
-                Py_XDECREF(data);
+                Py_DECREF(data);
                 return res;
             }
             case OP_TYPE_MIN:
@@ -305,10 +322,10 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     goto FAILURE;
                 }
                 PyObject* res = PyList_GetItem(data, 0);
+                Py_INCREF(res);
                 if (PyList_Size(data) == 1)
                 {
-                    Py_INCREF(res);
-                    Py_XDECREF(data);
+                    Py_DECREF(data);
                     return res;
                 }
                 for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
@@ -321,15 +338,20 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                         PyErr_SetString(PyExc_RuntimeError, "The max method is invoked with a exception");
                         Py_XDECREF(_res1);
                         Py_XDECREF(_res2);
+                        Py_DECREF(res);
                         goto FAILURE;
                     }
                     if (PyObject_RichCompareBool(_res1, _res2, Py_LT) == 1)
                     {
+                        PyObject* _t = res;
+                        Py_DECREF(_t);
+                        Py_INCREF(_compared);
                         res = _compared;
                     }
+                    Py_XDECREF(_res1);
+                    Py_XDECREF(_res2);
                 }
-                Py_INCREF(res);
-                Py_XDECREF(data);
+                Py_DECREF(data);
                 return res;
             }
             case OP_TYPE_COUNT:
@@ -339,7 +361,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 {
                     goto FAILURE;
                 }
-                Py_XDECREF(data);
+                Py_DECREF(data);
                 return res;
             }
             case OP_TYPE_COLLECT:
@@ -351,11 +373,12 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                         goto FAILURE;
                     }
                 }
+                Py_DECREF(data);
                 break;
             }
             default: {
                 PyErr_SetString(PyExc_NotImplementedError, "Unimplemented op_method!");
-                Py_XDECREF(data);
+                Py_DECREF(data);
                 Py_INCREF(Py_None);
                 return Py_None;
             }

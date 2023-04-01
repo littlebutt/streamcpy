@@ -66,10 +66,11 @@ Stream_of(PyObject* self, PyObject* args)
     Pipeline* head = PyObject_New(Pipeline, &Pipeline_type);
     if (!head)
     {
-        Py_XDECREF(st);
+        Py_DECREF(st);
         return NULL;
     }
     head->op_type = OP_TYPE_SKIP;
+    Py_INCREF(Py_None);
     head->op_method = Py_None;
     head->next = NULL;
     st->head= head;
@@ -77,8 +78,9 @@ Stream_of(PyObject* self, PyObject* args)
     PyObject* list_arg;
     if (!PyArg_ParseTuple(args, "O", &list_arg))
     {
-        Py_XDECREF(st);
-        Py_XDECREF(head);
+        Py_DECREF(st);
+        Py_DECREF(head);
+        Py_DECREF(Py_None);
         return NULL;
     }
     Py_INCREF(list_arg);
@@ -97,7 +99,7 @@ Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_MAP, op_method);
-    Py_XINCREF(self);
+    Py_INCREF(self);
     return (PyObject*)self;
 }
 
@@ -112,7 +114,7 @@ Stream_filter(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(op_method);
     Pipeline_append(self->head, OP_TYPE_FILTER, op_method);
-    Py_XINCREF(self);
+    Py_INCREF(self);
     return (PyObject*)self;
 }
 
@@ -121,7 +123,7 @@ Stream_distinct(Stream* self, PyObject* Py_UNUSED(args))
 {
     Py_INCREF(Py_None);
     Pipeline_append(self->head, OP_TYPE_DISTINCT, Py_None);
-    Py_XINCREF(self);
+    Py_INCREF(self);
     return (PyObject*)self;
 }
 
@@ -141,7 +143,7 @@ Stream_limit(Stream* self, PyObject* args, PyObject* kwargs)
     }
     Py_INCREF(limit);
     Pipeline_append(self->head, OP_TYPE_LIMIT, limit);
-    Py_XINCREF(self);
+    Py_INCREF(self);
     return (PyObject*)self;
 }
 
