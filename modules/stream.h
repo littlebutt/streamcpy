@@ -151,6 +151,20 @@ Stream_limit(Stream* self, PyObject* args, PyObject* kwargs)
 }
 
 static PyObject*
+Stream_sorted(Stream* self, PyObject* args, PyObject* kwargs)
+{
+    static char* kwlist[] = {"op_method", NULL};
+    PyObject* op_method;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &op_method))
+    {
+        return NULL;
+    }
+    Pipeline_append(self->head, OP_TYPE_SORTED, op_method);
+    Py_INCREF(self);
+    return (PyObject*)self;
+}
+
+static PyObject*
 Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
 {
     static char* kwlist[] = {"op_method", NULL};
@@ -246,6 +260,7 @@ static PyMethodDef Stream_methods[] = {
     {"filter", _PyCFunction_CAST(Stream_filter), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The filter method")},
     {"distinct", (PyCFunction)Stream_distinct, METH_NOARGS, PyDoc_STR("The distinct method")},
     {"limit", _PyCFunction_CAST(Stream_limit), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The limit method")},
+    {"sorted", _PyCFunction_CAST(Stream_sorted), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The sorted method")},
     {"for_each", _PyCFunction_CAST(Stream_for_each), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The for each method")},
     {"reduce", _PyCFunction_CAST(Stream_reduce), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The reduce method")},
     {"max",  _PyCFunction_CAST(Stream_max), METH_VARARGS | METH_KEYWORDS, PyDoc_STR("The max method")},

@@ -9,6 +9,7 @@ extern "C" {
 #include <Python.h>
 
 #include "op_types.h"
+#include "sort.h" // for OP_TYPE_SORTED
 
 
 static PyTypeObject Pipeline_type;
@@ -230,6 +231,21 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 {
                     goto FAILURE;
                 }
+                PyObject* tmp = data;
+                data = new_data;
+                Py_DECREF(tmp);
+                break;
+            }
+            case OP_TYPE_SORTED:
+            {
+                PyObject** _array = _Py_toarray(data);
+                if (!_array)
+                {
+                    goto FAILURE;
+                }
+                sort(_array, 0, (int)PyList_Size(data) - 1, ptr->op_method);
+                PyListObject* new_data = _Py_tolist(_array);
+                _Py_freearray(_array);
                 PyObject* tmp = data;
                 data = new_data;
                 Py_DECREF(tmp);
