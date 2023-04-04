@@ -11,7 +11,7 @@ Currently, the methods bellow is implemented.
 - [x] distinct
 - [x] limit
 - [x] reduce
-- [ ] sorted
+- [x] sorted
 - [x] max/min
 - [x] count
 - [ ] any_match/all_match
