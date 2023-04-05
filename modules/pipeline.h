@@ -244,6 +244,10 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     goto FAILURE;
                 }
                 sort(_array, 0, (int)PyList_Size(data) - 1, ptr->op_method);
+                if (PyErr_Occurred())
+                {
+                    goto FAILURE;
+                }
                 PyListObject* new_data = _Py_tolist(_array);
                 _Py_freearray(_array);
                 PyObject* tmp = data;

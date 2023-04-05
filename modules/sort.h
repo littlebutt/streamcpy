@@ -10,12 +10,15 @@ extern "C" {
 
 
 int
-_Py_compare(PyObject* obj1, PyObject* obj2, PyObject* comparefunc)
+_Py_compare(PyObject* obj1, PyObject* obj2, PyObject* comparefunc)          // May set Exception Flag!
 {
     PyObject* res = PyObject_CallFunction(comparefunc, "OO", obj1, obj2);
-    if(!res || !PyLong_Check(res))
+    if (!res)
     {
-        //TODO: error handling
+        return -2;
+    }
+    if(!PyLong_Check(res))
+    {
         PyErr_SetString(PyExc_TypeError, "Comparator returns wrong type");
         return -2;
     }
