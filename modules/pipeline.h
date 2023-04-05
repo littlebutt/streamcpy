@@ -76,6 +76,36 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
     return 0;
 }
 
+int
+_Pipeline_execute_map(PyObject** data, PyObject* op_method)
+{
+    PyListObject* new_data = (PyListObject*)PyList_New(0);
+    if (!new_data)
+    {
+        return -1;
+    }
+    for (Py_ssize_t i = 0; i<PyList_Size(*data); ++i)
+    {
+        PyObject* res = PyObject_CallFunction(op_method, "O", PyList_GetItem(*data, i));
+        if (!res)
+        {
+            Py_DECREF(new_data);
+            return -1;
+        }
+        if(PyList_Append(new_data, res) == -1)
+        {
+            Py_DECREF(res);
+            Py_DECREF(new_data);
+            return -1;
+        }
+        Py_DECREF(res);
+    }
+    PyObject* tmp = *data;
+    *data = new_data;
+    Py_DECREF(tmp);
+    return 0;
+}
+
 // inner method
 static PyObject*
 Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed ref*/)
@@ -115,30 +145,10 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
         {
             case OP_TYPE_MAP:
             {
-                PyListObject* new_data = (PyListObject*)PyList_New(0);
-                if (!new_data)
+                if (_Pipeline_execute_map(&data, ptr->op_method) < 0)
                 {
                     goto FAILURE;
                 }
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
-                {
-                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
-                    if (!res)
-                    {
-                        Py_DECREF(new_data);
-                        goto FAILURE;
-                    }
-                    if(PyList_Append(new_data, res) == -1)
-                    {
-                        Py_DECREF(res);
-                        Py_DECREF(new_data);
-                        goto FAILURE;
-                    }
-                    Py_DECREF(res);
-                }
-                PyObject* tmp = data;
-                data = new_data;
-                Py_DECREF(tmp);
                 break;
             }
             case OP_TYPE_FILTER:
