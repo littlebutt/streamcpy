@@ -14,6 +14,15 @@ extern "C" {
 #define _PyCFunction_CAST(func) \
     _Py_CAST(PyCFunction, _Py_CAST(void(*)(void), (func)))
 
+#define _Py_CHECK_CALLABLE(arg)                                                                                 \
+    do {                                                                                                        \
+        if (!PyCallable_Check(arg))                                                                             \
+        {                                                                                                       \
+            PyErr_Format(PyExc_TypeError, "The argument %U must be a Callable variable", PyObject_Repr(arg));   \
+            return NULL;                                                                                        \
+        }                                                                                                       \
+    }while(0)
+
 #include "pipeline.h"
 
 static PyTypeObject Stream_type;
@@ -103,6 +112,7 @@ Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_MAP, op_method);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -117,6 +127,7 @@ Stream_filter(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_FILTER, op_method);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -142,7 +153,7 @@ Stream_limit(Stream* self, PyObject* args, PyObject* kwargs)
     }
     if (!PyLong_Check(limit))
     {
-        PyErr_SetString(PyExc_TypeError, "The argument must be a int or its subclass");
+        PyErr_Format(PyExc_TypeError, "The argument %U must be a int or its subclass", PyObject_Repr(limit));
         return NULL;
     }
     Pipeline_append(self->head, OP_TYPE_LIMIT, limit);
@@ -159,6 +170,7 @@ Stream_sorted(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_SORTED, op_method);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -173,6 +185,7 @@ Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_FOR_EACH, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
     return retval;
@@ -187,6 +200,7 @@ Stream_reduce(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_REDUCE, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
     return retval;
@@ -201,6 +215,7 @@ Stream_max(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);  
     Pipeline_append(self->head, OP_TYPE_MAX, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
     return retval;
@@ -215,6 +230,7 @@ Stream_min(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_MIN, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
     return retval;
@@ -238,9 +254,9 @@ Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
-    if (!Py_IS_TYPE(op_method, &PyList_Type))
+    if (!PyList_Check(op_method))
     {
-        PyErr_SetString(PyExc_TypeError, "Only support List type currently");
+        PyErr_Format(PyExc_TypeError, "The argument %U must be a list or its subclass", PyObject_Repr(op_method));
         return NULL;
     }
     Pipeline_append(self->head, OP_TYPE_COLLECT, op_method);

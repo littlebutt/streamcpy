@@ -161,7 +161,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     }
                     if (!PyBool_Check(res))
                     {
-                        PyErr_SetString(PyExc_RuntimeError, "The given method cannot return a bool");
+                        PyErr_SetString(PyExc_RuntimeError, "The given function cannot return a bool");
                         Py_DECREF(item);
                         Py_DECREF(new_data);
                         Py_DECREF(res);
@@ -282,7 +282,6 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     PyObject* tmp = PyObject_CallFunction(ptr->op_method, "OO", res, param);
                     if (!tmp)
                     {
-                        PyErr_SetString(PyExc_RuntimeError, "The reduce method is invoked with a exception");
                         Py_DECREF(res);
                         goto FAILURE;
                     }
@@ -317,7 +316,6 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
                     if (!_res1 || !_res2)
                     {
-                        PyErr_SetString(PyExc_RuntimeError, "The max method is invoked with a exception");
                         Py_XDECREF(_res1);
                         Py_XDECREF(_res2);
                         Py_DECREF(res);
@@ -357,7 +355,6 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
                     if (!_res1 || !_res2)
                     {
-                        PyErr_SetString(PyExc_RuntimeError, "The max method is invoked with a exception");
                         Py_XDECREF(_res1);
                         Py_XDECREF(_res2);
                         Py_DECREF(res);
@@ -412,6 +409,10 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
 
     FAILURE:
         Py_XDECREF(data);
+        if (PyErr_Occurred())
+        {
+            PyErr_Print();
+        }
         Py_INCREF(Py_None);
         return Py_None;
 }
