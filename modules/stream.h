@@ -112,6 +112,7 @@ Stream_map(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_MAP, op_method);
     Py_INCREF(self);
@@ -127,6 +128,7 @@ Stream_filter(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_FILTER, op_method);
     Py_INCREF(self);
@@ -156,6 +158,7 @@ Stream_limit(Stream* self, PyObject* args, PyObject* kwargs)
         PyErr_Format(PyExc_TypeError, "The argument %U must be a int or its subclass", PyObject_Repr(limit));
         return NULL;
     }
+    Py_INCREF(limit);
     Pipeline_append(self->head, OP_TYPE_LIMIT, limit);
     Py_INCREF(self);
     return (PyObject*)self;
@@ -170,6 +173,7 @@ Stream_sorted(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_SORTED, op_method);
     Py_INCREF(self);
@@ -185,6 +189,7 @@ Stream_for_each(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_FOR_EACH, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
@@ -200,6 +205,7 @@ Stream_reduce(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_REDUCE, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
@@ -215,6 +221,7 @@ Stream_max(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);  
     Pipeline_append(self->head, OP_TYPE_MAX, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
@@ -230,6 +237,7 @@ Stream_min(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     _Py_CHECK_CALLABLE(op_method);
     Pipeline_append(self->head, OP_TYPE_MIN, op_method);
     PyObject* retval = Pipeline_execute(self->head, self->spliterator);
@@ -254,6 +262,7 @@ Stream_collect(Stream* self, PyObject* args, PyObject* kwargs)
     {
         return NULL;
     }
+    Py_INCREF(op_method);
     if (!PyList_Check(op_method))
     {
         PyErr_Format(PyExc_TypeError, "The argument %U must be a list or its subclass", PyObject_Repr(op_method));
