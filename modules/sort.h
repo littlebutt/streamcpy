@@ -10,7 +10,7 @@ extern "C" {
 
 
 int
-_Py_compare(PyObject* obj1, PyObject* obj2, PyObject* comparefunc)          // May set Exception Flag!
+_sort_compare(PyObject* obj1, PyObject* obj2, PyObject* comparefunc)          // May set Exception Flag!
 {
     PyObject* res = PyObject_CallFunction(comparefunc, "OO", obj1, obj2);
     if (!res)
@@ -29,7 +29,7 @@ _Py_compare(PyObject* obj1, PyObject* obj2, PyObject* comparefunc)          // M
 
 
 PyObject**
-_Py_toarray(PyListObject* list)
+_sort_toarray(PyListObject* list)
 {
     size_t len = (size_t)PyList_Size(list);
     PyObject** retval = (PyObject**)PyMem_RawMalloc(sizeof(PyObject*) * (len + 1));
@@ -46,7 +46,7 @@ _Py_toarray(PyListObject* list)
 }
 
 PyListObject*
-_Py_tolist(PyObject** array)
+_sort_tolist(PyObject** array)
 {
     long len = 0;
     for(; array[len] != NULL; ++len);
@@ -59,7 +59,7 @@ _Py_tolist(PyObject** array)
 }
 
 void
-_Py_freearray(PyObject** array)
+_sort_freearray(PyObject** array)
 {
     PyMem_RawFree(array);
 }
@@ -70,7 +70,7 @@ _sort(PyObject** list, long left, long right, PyObject* comparefunc)
     PyObject* target = list[left];
     while (left < right)
     {
-        while(left < right && _Py_compare(list[right], target, comparefunc) >= 0) 
+        while(left < right && _sort_compare(list[right], target, comparefunc) >= 0) 
             right--;  
         if(left < right) 
         {
@@ -78,7 +78,7 @@ _sort(PyObject** list, long left, long right, PyObject* comparefunc)
             left++;
         }
  
-        while(left < right && _Py_compare(list[left], target, comparefunc) < 0)
+        while(left < right && _sort_compare(list[left], target, comparefunc) < 0)
             left++;  
         if(left < right) 
         {

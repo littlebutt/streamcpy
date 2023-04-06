@@ -202,10 +202,12 @@
     <None Include="..\python\pipeline.py" />
     <None Include="..\python\stream.py" />
     <None Include="..\python\__init__.py" />
+    <None Include="..\streamcpy.pyi" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\modules\op_types.h" />
     <ClInclude Include="..\modules\pipeline.h" />
+    <ClInclude Include="..\modules\sort.h" />
     <ClInclude Include="..\modules\stream.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

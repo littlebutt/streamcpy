@@ -248,7 +248,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
             }
             case OP_TYPE_SORTED:
             {
-                PyObject** _array = _Py_toarray(data);
+                PyObject** _array = _sort_toarray(data);
                 if (!_array)
                 {
                     goto FAILURE;
@@ -258,8 +258,8 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 {
                     goto FAILURE;
                 }
-                PyListObject* new_data = _Py_tolist(_array);
-                _Py_freearray(_array);
+                PyListObject* new_data = _sort_tolist(_array);
+                _sort_freearray(_array);
                 PyObject* tmp = data;
                 data = new_data;
                 Py_DECREF(tmp);
@@ -396,6 +396,54 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 }
                 Py_DECREF(data);
                 return res;
+            }
+            case OP_TYPE_ANY_MATCH:
+            {
+                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                {
+                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
+                    if (!res)
+                    {
+                        goto FAILURE;
+                    }
+                    else if (!PyBool_Check(res))
+                    {
+                        PyErr_Format(PyExc_TypeError, "The retval of op_method must be a bool but %U returned", PyObject_Repr(res));
+                        goto FAILURE;
+                    } else if (res == Py_True)
+                    {
+                        Py_DECREF(data);
+                        Py_INCREF(Py_True);
+                        return Py_True;
+                    }
+                }
+                Py_DECREF(data);
+                Py_INCREF(Py_False);
+                return Py_False;
+            }
+            case OP_TYPE_ALL_MATCH:
+            {
+                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                {
+                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
+                    if (!res)
+                    {
+                        goto FAILURE;
+                    }
+                    else if (!PyBool_Check(res))
+                    {
+                        PyErr_Format(PyExc_TypeError, "The retval of op_method must be a bool but %U returned", PyObject_Repr(res));
+                        goto FAILURE;
+                    } else if (res == Py_False)
+                    {
+                        Py_DECREF(data);
+                        Py_INCREF(Py_False);
+                        return Py_False;
+                    }
+                }
+                Py_DECREF(data);
+                Py_INCREF(Py_True);
+                return Py_True;
             }
             case OP_TYPE_COLLECT:
             {

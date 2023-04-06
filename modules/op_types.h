@@ -17,7 +17,8 @@ extern "C" {
 #define OP_TYPE_MAX 9
 #define OP_TYPE_MIN 10
 #define OP_TYPE_COUNT 11
- // TODO: more
+#define OP_TYPE_ANY_MATCH 12
+#define OP_TYPE_ALL_MATCH 13
 
 
 #ifdef __cplusplus
