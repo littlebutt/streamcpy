@@ -14,7 +14,7 @@ Currently, the methods bellow is implemented.
 - [x] sorted
 - [x] max/min
 - [x] count
-- [ ] any_match/all_match
+- [x] any_match/all_match
 
 ## Installation
 
