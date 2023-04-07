@@ -68,6 +68,8 @@ dkms.conf
 
 /python/__pycache__
 /.ipynb_checkpoints
+/dist
+/streamcpy.egg-info
 
 # idea
 
