@@ -32,7 +32,7 @@ int
 list_append(list* target, PyObject* item)
 {
     target->len ++;
-    target->_list = (PyObject**)PyMem_RawRealloc(target->_list, target->len);
+    target->_list = (PyObject**)PyMem_RawRealloc(target->_list, target->len * sizeof(PyObject*));
     if (!target->_list)
     {
         return -1;
@@ -41,8 +41,20 @@ list_append(list* target, PyObject* item)
     return target->len;
 }
 
+size_t
+list_slice(list* target, size_t len)
+{
+    target->len = len;
+    target->_list = (PyObject**)PyMem_RawRealloc(target->_list, target->len * sizeof(PyObject*));
+    if (!target->_list)
+    {
+        return -1;
+    }
+    return target->len;
+}
+
 void
-list_free(list* target)
+list_Free(list* target)
 {
     if (!target)
     {

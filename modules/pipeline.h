@@ -10,7 +10,7 @@ extern "C" {
 
 #include "op_types.h"
 #include "sort.h" // for OP_TYPE_SORTED
-
+#include "list.h"
 
 static PyTypeObject Pipeline_type;
 
@@ -76,42 +76,40 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
     return 0;
 }
 
-int
-_Pipeline_execute_map(PyObject** data, PyObject* op_method)
+list*
+_Pipeline_execute_map(list* data, PyObject* op_method)
 {
-    PyListObject* new_data = (PyListObject*)PyList_New(0);
+    list* new_data = list_New();
     if (!new_data)
     {
-        return -1;
+        return NULL;
     }
-    for (Py_ssize_t i = 0; i<PyList_Size(*data); ++i)
+    for (Py_ssize_t i = 0; i < data->len; ++ i)
     {
-        PyObject* res = PyObject_CallFunction(op_method, "O", PyList_GetItem(*data, i));
+        PyObject* res = PyObject_CallFunction(op_method, "O", data->_list[i]);
         if (!res)
         {
-            Py_DECREF(new_data);
-            return -1;
+            list_Free(new_data);
+            return NULL;
         }
-        if(PyList_Append(new_data, res) == -1)
+        if(list_append(new_data, res) == -1)
         {
             Py_DECREF(res);
-            Py_DECREF(new_data);
-            return -1;
+            list_Free(new_data);
+            return NULL;
         }
         Py_DECREF(res);
     }
-    PyObject* tmp = *data;
-    *data = new_data;
-    Py_DECREF(tmp);
-    return 0;
+    list_Free(data);
+    return new_data;
 }
 
 // inner method
 static PyObject*
 Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed ref*/)
 {
-    PyListObject* data = (PyListObject*)PyList_New(0);
-    if(!data)
+    list* list_data = list_New();
+    if (!list_data)
     {
         goto FAILURE;
     }
@@ -123,7 +121,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
     PyObject* item;
     while ((item = PyIter_Next(iter)))
     {
-        if(PyList_Append(data, item) < 0)
+        if (list_append(list_data, item) < 0)
         {
             Py_DECREF(iter);
             Py_DECREF(item);
@@ -145,51 +143,53 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
         {
             case OP_TYPE_MAP:
             {
-                if (_Pipeline_execute_map(&data, ptr->op_method) < 0)
+                list* res = _Pipeline_execute_map(list_data, ptr->op_method);
+                if (!res)
                 {
                     goto FAILURE;
                 }
+                list_data = res;
                 break;
             }
             case OP_TYPE_FILTER:
             {
-                PyListObject* new_data = (PyListObject*)PyList_New(0);
+                list* new_data = list_New();
                 if (!new_data)
                 {
                     goto FAILURE;
                 }
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 0; i < list_data->len; ++ i)
                 {
-                    PyObject* item = PyList_GetItem(data, i);
+                    PyObject* item = list_data->_list[i];
                     Py_INCREF(item);
                     PyObject* res = PyObject_CallFunction(ptr->op_method, "O", item);
                     if (!res)
                     {
                         Py_DECREF(item);
-                        Py_DECREF(new_data);
+                        list_Free(new_data);
                         goto FAILURE;
                     }
                     if (!PyBool_Check(res))
                     {
                         PyErr_SetString(PyExc_RuntimeError, "The given function cannot return a bool");
                         Py_DECREF(item);
-                        Py_DECREF(new_data);
+                        list_Free(new_data);
                         Py_DECREF(res);
                         goto FAILURE;
                     }
-                    if(res == Py_True && PyList_Append(new_data, item) == -1)
+                    if(res == Py_True && list_append(new_data, item) == -1)
                     {
                         Py_DECREF(item);
-                        Py_DECREF(new_data);
+                        list_Free(new_data);
                         Py_DECREF(res);
                         goto FAILURE;
                     }
                     Py_DECREF(item);
                     Py_DECREF(res);
                 }
-                PyObject* tmp = data;
-                data = new_data;
-                Py_DECREF(tmp);
+                list* tmp = list_data;
+                list_data = new_data;
+                list_Free(tmp);
                 break;
             }
             case OP_TYPE_DISTINCT:
@@ -199,77 +199,74 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                 {
                     goto FAILURE;
                 }
-                PyListObject* new_data = (PyListObject*)PyList_New(0);
+                list* new_data = list_New();
                 if (!new_data)
                 {
                     Py_DECREF(_set);
                     goto FAILURE;
                 }
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 0; i < list_data->len; ++i)
                 {
-                    PyObject* item = PyList_GetItem(data, i);
+                    PyObject* item = list_data->_list[i];
                     Py_INCREF(item);
                     if (PySet_Contains(_set, item) <= 0)
                     {
-                        if (PyList_Append(new_data, item) < 0)
+                        if (list_append(new_data, item) < 0)
                         {
                             Py_DECREF(item);
                             Py_DECREF(_set);
-                            Py_DECREF(new_data);
+                            list_Free(new_data);
                             goto FAILURE;
                         }
                         if (PySet_Add(_set, item))
                         {
                             Py_DECREF(item);
                             Py_DECREF(_set);
-                            Py_DECREF(new_data);
+                            list_Free(new_data);
                             goto FAILURE;
                         }
                     }
                     Py_DECREF(item);
                 }
-                PyObject* tmp = data;
-                data = new_data;
-                Py_DECREF(tmp);
+                list* tmp = list_data;
+                list_data = new_data;
+                list_Free(tmp);
                 Py_DECREF(_set);
                 break;
             }
             case OP_TYPE_LIMIT:
             {
-                PyListObject* new_data = PyList_GetSlice(data, 0, PyLong_AsSsize_t(ptr->op_method));
-                if (!new_data)
+                size_t res = list_slice(list_data, (size_t)PyLong_AsSsize_t(ptr->op_method));
+                if (res < 0)
                 {
                     goto FAILURE;
                 }
-                PyObject* tmp = data;
-                data = new_data;
-                Py_DECREF(tmp);
                 break;
             }
             case OP_TYPE_SORTED:
             {
-                PyObject** _array = _sort_toarray(data);
-                if (!_array)
-                {
-                    goto FAILURE;
-                }
-                sort(_array, 0, (int)PyList_Size(data) - 1, ptr->op_method);
-                if (PyErr_Occurred())
-                {
-                    goto FAILURE;
-                }
-                PyListObject* new_data = _sort_tolist(_array);
-                _sort_freearray(_array);
-                PyObject* tmp = data;
-                data = new_data;
-                Py_DECREF(tmp);
-                break;
+                // PyObject** _array = _sort_toarray(data);
+                // if (!_array)
+                // {
+                //     goto FAILURE;
+                // }
+                // sort(_array, 0, (int)PyList_Size(data) - 1, ptr->op_method);
+                // if (PyErr_Occurred())
+                // {
+                //     goto FAILURE;
+                // }
+                // PyListObject* new_data = _sort_tolist(_array);
+                // _sort_freearray(_array);
+                // PyObject* tmp = data;
+                // data = new_data;
+                // Py_DECREF(tmp);
+                // break;
             }
             case OP_TYPE_FOR_EACH:
             {
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 0; i < list_data->len; ++ i)
                 {
-                    if(!PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i)))
+                    if(!PyObject_CallFunction(ptr->op_method, "O", list_data->_list[i]))
                     {
                         goto FAILURE;
                     }
@@ -278,21 +275,21 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
             }
             case OP_TYPE_REDUCE:
             {
-                if (PyList_Size(data) == 0)
+                if (list_data->len == 0)
                 {
                     PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
                     goto FAILURE;
                 }
-                PyObject* res = PyList_GetItem(data, 0);
+                PyObject* res = list_data->_list[0];
                 Py_INCREF(res);
-                if (PyList_Size(data) == 1)
+                if (list_data->len == 1)
                 {
-                    Py_DECREF(data);
+                    list_Free(list_data);
                     return res;
                 }
-                for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 1; i < list_data->len; ++ i)
                 {
-                    PyObject* param = PyList_GetItem(data, i);
+                    PyObject* param = list_data->_list[i];
                     PyObject* tmp = PyObject_CallFunction(ptr->op_method, "OO", res, param);
                     if (!tmp)
                     {
@@ -306,26 +303,26 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                         res = tmp;
                     }
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_MAX:
             {
-                if (PyList_Size(data) == 0)
+                if (list_data->len == 0)
                 {
                     PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
                     goto FAILURE;
                 }
-                PyObject* res = PyList_GetItem(data, 0);
+                PyObject* res = list_data->_list[0];
                 Py_INCREF(res);
-                if (PyList_Size(data) == 1)
+                if (list_data->len == 1)
                 {
-                    Py_DECREF(data);
+                    list_Free(list_data);
                     return res;
                 }
-                for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 1; i < list_data->len; ++ i)
                 {
-                    PyObject* _compared = PyList_GetItem(data, i);
+                    PyObject* _compared = list_data->_list[i];
                     PyObject* _res1 = PyObject_CallFunction(ptr->op_method, "O", _compared);
                     PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
                     if (!_res1 || !_res2)
@@ -345,26 +342,26 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     Py_XDECREF(_res1);
                     Py_XDECREF(_res2);
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_MIN:
             {
-                if (PyList_Size(data) == 0)
+                if (list_data->len == 0)
                 {
                     PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
                     goto FAILURE;
                 }
-                PyObject* res = PyList_GetItem(data, 0);
+                PyObject* res = list_data->_list[0];
                 Py_INCREF(res);
-                if (PyList_Size(data) == 1)
+                if (list_data->len == 1)
                 {
-                    Py_DECREF(data);
+                    list_Free(list_data);
                     return res;
                 }
-                for (Py_ssize_t i = 1; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 1; i < list_data->len; ++ i)
                 {
-                    PyObject* _compared = PyList_GetItem(data, i);
+                    PyObject* _compared = list_data->_list[i];
                     PyObject* _res1 = PyObject_CallFunction(ptr->op_method, "O", _compared);
                     PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
                     if (!_res1 || !_res2)
@@ -384,24 +381,24 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                     Py_XDECREF(_res1);
                     Py_XDECREF(_res2);
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_COUNT:
             {
-                PyObject* res = PyLong_FromSsize_t(PyList_Size(data));
+                PyObject* res = PyLong_FromSsize_t((Py_ssize_t)list_data->len);
                 if (!res)
                 {
                     goto FAILURE;
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_ANY_MATCH:
             {
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 0; i < list_data->len; ++ i)
                 {
-                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
+                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", list_data->_list[i]);
                     if (!res)
                     {
                         goto FAILURE;
@@ -412,20 +409,20 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                         goto FAILURE;
                     } else if (res == Py_True)
                     {
-                        Py_DECREF(data);
+                        list_Free(list_data);
                         Py_INCREF(Py_True);
                         return Py_True;
                     }
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 Py_INCREF(Py_False);
                 return Py_False;
             }
             case OP_TYPE_ALL_MATCH:
             {
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 0; i < list_data->len; ++ i)
                 {
-                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", PyList_GetItem(data, i));
+                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", list_data->_list[i]);
                     if (!res)
                     {
                         goto FAILURE;
@@ -436,30 +433,30 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
                         goto FAILURE;
                     } else if (res == Py_False)
                     {
-                        Py_DECREF(data);
+                        list_Free(list_data);
                         Py_INCREF(Py_False);
                         return Py_False;
                     }
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 Py_INCREF(Py_True);
                 return Py_True;
             }
             case OP_TYPE_COLLECT:
             {
-                for (Py_ssize_t i = 0; i<PyList_Size(data); ++i)
+                for (Py_ssize_t i = 0; i < list_data->len; ++ i)
                 {
-                    if (PyList_Append(ptr->op_method, PyList_GetItem(data, i)) == -1)
+                    if (PyList_Append(ptr->op_method, list_data->_list[i]) == -1)
                     {
                         goto FAILURE;
                     }
                 }
-                Py_DECREF(data);
+                list_Free(list_data);
                 break;
             }
             default: {
                 PyErr_SetString(PyExc_NotImplementedError, "Unimplemented op_method!");
-                Py_DECREF(data);
+                list_Free(list_data);
                 Py_INCREF(Py_None);
                 return Py_None;
             }
@@ -470,7 +467,7 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
     return Py_None;
 
     FAILURE:
-        Py_XDECREF(data);
+        list_Free(list_data);
         if (PyErr_Occurred())
         {
             PyErr_Print();
