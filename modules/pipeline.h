@@ -10,7 +10,7 @@ extern "C" {
 
 #include "op_types.h"
 #include "sort.h" // for OP_TYPE_SORTED
-#include "list.h"
+#include "list.h" // for inner list container
 
 static PyTypeObject Pipeline_type;
 
@@ -76,6 +76,15 @@ Pipeline_append(Pipeline* pl, const int op_type, PyObject* op_method)
     return 0;
 }
 
+/**
+ * -------------------------------
+ * execute implementation
+*/
+
+/**
+ * helper methods
+*/
+
 list*
 _Pipeline_execute_map(list* data, PyObject* op_method)
 {
@@ -104,9 +113,211 @@ _Pipeline_execute_map(list* data, PyObject* op_method)
     return new_data;
 }
 
-// inner method
+list*
+_Pipeline_execute_filter(list* data, PyObject* op_method)
+{
+    list* new_data = list_New();
+    if (!new_data)
+    {
+        return NULL;
+    }
+    for (Py_ssize_t i = 0; i < data->len; ++ i)
+    {
+        PyObject* item = data->_list[i];
+        Py_INCREF(item);
+        PyObject* res = PyObject_CallFunction(op_method, "O", item);
+        if (!res)
+        {
+            Py_DECREF(item);
+            list_Free(new_data);
+            return NULL;
+        }
+        if (!PyBool_Check(res))
+        {
+            PyErr_SetString(PyExc_RuntimeError, "The given function cannot return a bool");
+            Py_DECREF(item);
+            list_Free(new_data);
+            Py_DECREF(res);
+            return NULL;
+        }
+        if(res == Py_True && list_append(new_data, item) == -1)
+        {
+            Py_DECREF(item);
+            list_Free(new_data);
+            Py_DECREF(res);
+            return NULL;;
+        }
+        Py_DECREF(item);
+        Py_DECREF(res);
+    }
+    list_Free(data);
+    return new_data;
+}
+
+list*
+_Pipeline_execute_distinct(list* data)
+{
+    PyObject* _set = PySet_New(NULL);
+    if (!_set)
+    {
+        return NULL;
+    }
+    list* new_data = list_New();
+    if (!new_data)
+    {
+        Py_DECREF(_set);
+        return NULL;
+    }
+    for (Py_ssize_t i = 0; i < data->len; ++ i)
+    {
+        PyObject* item = data->_list[i];
+        Py_INCREF(item);
+        if (PySet_Contains(_set, item) <= 0)
+        {
+            if (list_append(new_data, item) < 0)
+            {
+                Py_DECREF(item);
+                Py_DECREF(_set);
+                list_Free(new_data);
+                return NULL;
+            }
+            if (PySet_Add(_set, item))
+            {
+                Py_DECREF(item);
+                Py_DECREF(_set);
+                list_Free(new_data);
+                return NULL;
+            }
+        }
+        Py_DECREF(item);
+    }
+    list_Free(data);
+    Py_DECREF(_set);
+    return new_data;
+}
+
+PyObject*
+_Pipeline_execute_reduce(list* data, PyObject* op_method)
+{
+    if (data->len == 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
+        return NULL;
+    }
+    PyObject* res = data->_list[0];
+    Py_INCREF(res);
+    if (data->len == 1)
+    {
+        list_Free(data);
+        return res;
+    }
+    for (Py_ssize_t i = 1; i < data->len; ++ i)
+    {
+        PyObject* param = data->_list[i];
+        PyObject* tmp = PyObject_CallFunction(op_method, "OO", res, param);
+        if (!tmp)
+        {
+            Py_DECREF(res);
+            return NULL;
+        }
+        else
+        {
+            PyObject* _t = res;
+            Py_XDECREF(_t);
+            res = tmp;
+        }
+    }
+    list_Free(data);
+    return res;
+}
+
+PyObject*
+_Pipeline_execute_max(list* data, PyObject* op_method)
+{
+    if (data->len == 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
+        return NULL;
+    }
+    PyObject* res = data->_list[0];
+    Py_INCREF(res);
+    if (data->len == 1)
+    {
+        list_Free(data);
+        return res;
+    }
+    for (Py_ssize_t i = 1; i < data->len; ++ i)
+    {
+        PyObject* _compared = data->_list[i];
+        PyObject* _res1 = PyObject_CallFunction(op_method, "O", _compared);
+        PyObject* _res2 = PyObject_CallFunction(op_method, "O", res);
+        if (!_res1 || !_res2)
+        {
+            Py_XDECREF(_res1);
+            Py_XDECREF(_res2);
+            Py_DECREF(res);
+            return NULL;
+        }
+        if (PyObject_RichCompareBool(_res1, _res2, Py_GT) == 1)
+        {
+            PyObject* _t = res;
+            Py_DECREF(_t);
+            Py_INCREF(_compared);
+            res = _compared;
+        }
+        Py_XDECREF(_res1);
+        Py_XDECREF(_res2);
+    }
+    list_Free(data);
+    return res;
+}
+
+PyObject*
+_Pipeline_execute_min(list* data, PyObject* op_method)
+{
+    if (data->len == 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
+        return NULL;
+    }
+    PyObject* res = data->_list[0];
+    Py_INCREF(res);
+    if (data->len == 1)
+    {
+        list_Free(data);
+        return res;
+    }
+    for (Py_ssize_t i = 1; i < data->len; ++ i)
+    {
+        PyObject* _compared = data->_list[i];
+        PyObject* _res1 = PyObject_CallFunction(op_method, "O", _compared);
+        PyObject* _res2 = PyObject_CallFunction(op_method, "O", res);
+        if (!_res1 || !_res2)
+        {
+            Py_XDECREF(_res1);
+            Py_XDECREF(_res2);
+            Py_DECREF(res);
+            return NULL;
+        }
+        if (PyObject_RichCompareBool(_res1, _res2, Py_LT) == 1)
+        {
+            PyObject* _t = res;
+            Py_DECREF(_t);
+            Py_INCREF(_compared);
+            res = _compared;
+        }
+        Py_XDECREF(_res1);
+        Py_XDECREF(_res2);
+    }
+    list_Free(data);
+    return res;
+}
+
+/**
+ * execute method
+*/
 static PyObject*
-Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed ref*/)
+Pipeline_execute(Pipeline* pl, PyObject* init_data)
 {
     list* list_data = list_New();
     if (!list_data)
@@ -153,85 +364,22 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
             }
             case OP_TYPE_FILTER:
             {
-                list* new_data = list_New();
-                if (!new_data)
+                list* res = _Pipeline_execute_filter(list_data, ptr->op_method);
+                if (!res)
                 {
                     goto FAILURE;
                 }
-                for (Py_ssize_t i = 0; i < list_data->len; ++ i)
-                {
-                    PyObject* item = list_data->_list[i];
-                    Py_INCREF(item);
-                    PyObject* res = PyObject_CallFunction(ptr->op_method, "O", item);
-                    if (!res)
-                    {
-                        Py_DECREF(item);
-                        list_Free(new_data);
-                        goto FAILURE;
-                    }
-                    if (!PyBool_Check(res))
-                    {
-                        PyErr_SetString(PyExc_RuntimeError, "The given function cannot return a bool");
-                        Py_DECREF(item);
-                        list_Free(new_data);
-                        Py_DECREF(res);
-                        goto FAILURE;
-                    }
-                    if(res == Py_True && list_append(new_data, item) == -1)
-                    {
-                        Py_DECREF(item);
-                        list_Free(new_data);
-                        Py_DECREF(res);
-                        goto FAILURE;
-                    }
-                    Py_DECREF(item);
-                    Py_DECREF(res);
-                }
-                list* tmp = list_data;
-                list_data = new_data;
-                list_Free(tmp);
+                list_data = res;
                 break;
             }
             case OP_TYPE_DISTINCT:
             {
-                PyObject* _set = PySet_New(NULL);
-                if (!_set)
+                list* res = _Pipeline_execute_distinct(list_data);
+                if (!res)
                 {
                     goto FAILURE;
                 }
-                list* new_data = list_New();
-                if (!new_data)
-                {
-                    Py_DECREF(_set);
-                    goto FAILURE;
-                }
-                for (Py_ssize_t i = 0; i < list_data->len; ++i)
-                {
-                    PyObject* item = list_data->_list[i];
-                    Py_INCREF(item);
-                    if (PySet_Contains(_set, item) <= 0)
-                    {
-                        if (list_append(new_data, item) < 0)
-                        {
-                            Py_DECREF(item);
-                            Py_DECREF(_set);
-                            list_Free(new_data);
-                            goto FAILURE;
-                        }
-                        if (PySet_Add(_set, item))
-                        {
-                            Py_DECREF(item);
-                            Py_DECREF(_set);
-                            list_Free(new_data);
-                            goto FAILURE;
-                        }
-                    }
-                    Py_DECREF(item);
-                }
-                list* tmp = list_data;
-                list_data = new_data;
-                list_Free(tmp);
-                Py_DECREF(_set);
+                list_data = res;
                 break;
             }
             case OP_TYPE_LIMIT:
@@ -275,113 +423,29 @@ Pipeline_execute(Pipeline* pl /*borrowed ref*/, PyObject* init_data /*borrowed r
             }
             case OP_TYPE_REDUCE:
             {
-                if (list_data->len == 0)
+                PyObject* res = _Pipeline_execute_reduce(list_data, ptr->op_method);
+                if (!res)
                 {
-                    PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
                     goto FAILURE;
                 }
-                PyObject* res = list_data->_list[0];
-                Py_INCREF(res);
-                if (list_data->len == 1)
-                {
-                    list_Free(list_data);
-                    return res;
-                }
-                for (Py_ssize_t i = 1; i < list_data->len; ++ i)
-                {
-                    PyObject* param = list_data->_list[i];
-                    PyObject* tmp = PyObject_CallFunction(ptr->op_method, "OO", res, param);
-                    if (!tmp)
-                    {
-                        Py_DECREF(res);
-                        goto FAILURE;
-                    }
-                    else
-                    {
-                        PyObject* _t = res;
-                        Py_XDECREF(_t);
-                        res = tmp;
-                    }
-                }
-                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_MAX:
             {
-                if (list_data->len == 0)
+                PyObject* res = _Pipeline_execute_max(list_data, ptr->op_method);
+                if (!res)
                 {
-                    PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
                     goto FAILURE;
                 }
-                PyObject* res = list_data->_list[0];
-                Py_INCREF(res);
-                if (list_data->len == 1)
-                {
-                    list_Free(list_data);
-                    return res;
-                }
-                for (Py_ssize_t i = 1; i < list_data->len; ++ i)
-                {
-                    PyObject* _compared = list_data->_list[i];
-                    PyObject* _res1 = PyObject_CallFunction(ptr->op_method, "O", _compared);
-                    PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
-                    if (!_res1 || !_res2)
-                    {
-                        Py_XDECREF(_res1);
-                        Py_XDECREF(_res2);
-                        Py_DECREF(res);
-                        goto FAILURE;
-                    }
-                    if (PyObject_RichCompareBool(_res1, _res2, Py_GT) == 1)
-                    {
-                        PyObject* _t = res;
-                        Py_DECREF(_t);
-                        Py_INCREF(_compared);
-                        res = _compared;
-                    }
-                    Py_XDECREF(_res1);
-                    Py_XDECREF(_res2);
-                }
-                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_MIN:
             {
-                if (list_data->len == 0)
+                PyObject* res = _Pipeline_execute_min(list_data, ptr->op_method);
+                if (!res)
                 {
-                    PyErr_SetString(PyExc_RuntimeError, "The size of data is 0");
                     goto FAILURE;
                 }
-                PyObject* res = list_data->_list[0];
-                Py_INCREF(res);
-                if (list_data->len == 1)
-                {
-                    list_Free(list_data);
-                    return res;
-                }
-                for (Py_ssize_t i = 1; i < list_data->len; ++ i)
-                {
-                    PyObject* _compared = list_data->_list[i];
-                    PyObject* _res1 = PyObject_CallFunction(ptr->op_method, "O", _compared);
-                    PyObject* _res2 = PyObject_CallFunction(ptr->op_method, "O", res);
-                    if (!_res1 || !_res2)
-                    {
-                        Py_XDECREF(_res1);
-                        Py_XDECREF(_res2);
-                        Py_DECREF(res);
-                        goto FAILURE;
-                    }
-                    if (PyObject_RichCompareBool(_res1, _res2, Py_LT) == 1)
-                    {
-                        PyObject* _t = res;
-                        Py_DECREF(_t);
-                        Py_INCREF(_compared);
-                        res = _compared;
-                    }
-                    Py_XDECREF(_res1);
-                    Py_XDECREF(_res2);
-                }
-                list_Free(list_data);
                 return res;
             }
             case OP_TYPE_COUNT:
