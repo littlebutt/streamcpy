@@ -38,14 +38,8 @@ typedef struct {
 static void
 Stream_dealloc(Stream* st)
 {
-    if (st->head && Py_REFCNT(st->head) >= 0)
-    {
-        Py_DECREF(st->head);
-    }
-    if (st->spliterator && Py_REFCNT(st->spliterator) >= 0)
-    {
-        Py_DECREF(st->spliterator);
-    }
+    Py_CLEAR(st->head);
+    Py_CLEAR(st->spliterator);
     Py_TYPE(st)->tp_free(st);
 }
 

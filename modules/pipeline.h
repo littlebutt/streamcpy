@@ -28,14 +28,8 @@ typedef struct _Pipeline {
 static void
 Pipeline_dealloc(Pipeline* pl)
 {
-    if (pl->op_method && Py_REFCNT(pl->op_method) >= 0)
-    {
-        Py_DECREF(pl->op_method);
-    }
-    if (pl->next && Py_REFCNT(pl->next) >= 0)
-    {
-        Py_DECREF(pl->next);
-    }
+    Py_CLEAR(pl->op_method);
+    Py_CLEAR(pl->next);
     Py_TYPE(pl)->tp_free(pl);
 }
 
@@ -393,22 +387,12 @@ Pipeline_execute(Pipeline* pl, PyObject* init_data)
             }
             case OP_TYPE_SORTED:
             {
-                // PyObject** _array = _sort_toarray(data);
-                // if (!_array)
-                // {
-                //     goto FAILURE;
-                // }
-                // sort(_array, 0, (int)PyList_Size(data) - 1, ptr->op_method);
-                // if (PyErr_Occurred())
-                // {
-                //     goto FAILURE;
-                // }
-                // PyListObject* new_data = _sort_tolist(_array);
-                // _sort_freearray(_array);
-                // PyObject* tmp = data;
-                // data = new_data;
-                // Py_DECREF(tmp);
-                // break;
+                sort(list_data->_list, 0, (int)list_data->len - 1, ptr->op_method);
+                if (PyErr_Occurred())
+                {
+                    goto FAILURE;
+                }
+                break;
             }
             case OP_TYPE_FOR_EACH:
             {
